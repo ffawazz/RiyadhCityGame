@@ -34,4 +34,4 @@ func _ready() -> void:
 
 func _on_pick(id: String) -> void:
 	Game.select_animal(id)
-	Router.go("farm_hub")
+	Router.go("farm_world")

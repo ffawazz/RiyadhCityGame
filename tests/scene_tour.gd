@@ -8,7 +8,11 @@ func _ready() -> void:
 	var which := args[1] if args.size() > 1 else "city"
 	Game.new_game()
 	Game.select_character("daniah")
-	var path := "res://scenes/city.tscn" if which == "city" else "res://scenes/farm_highway.tscn"
+	var path := "res://scenes/city.tscn"
+	if which == "highway":
+		path = "res://scenes/farm_highway.tscn"
+	elif which == "farm":
+		path = "res://scenes/farm_world.tscn"
 	var scene := (load(path) as PackedScene).instantiate()
 	add_child(scene)
 	await get_tree().process_frame
@@ -18,25 +22,38 @@ func _ready() -> void:
 	add_child(cam)
 	cam.make_current()
 	var views: Array
-	if which == "city":
+	if which == "farm":
 		views = [
-			["aerial", Vector3(450, 330, 780), Vector3(450, 0, 300)],
-			["kingdom", Vector3(625, 14, 590), Vector3(625, 60, 445)],
-			["fort_mosque", Vector3(430, 20, 330), Vector3(520, 12, 190)],
-			["villas", Vector3(60, 25, 380), Vector3(220, 6, 480)],
-			["towers_street", Vector3(300, 6, 335), Vector3(450, 40, 345)],
+			["gameplay", null, null],
+			["overview", Vector3(90, 70, 190), Vector3(90, 0, 70)],
+			["pool", Vector3(35, 14, 100), Vector3(35, 1, 62)],
+			["pingpong_hoop", Vector3(90, 12, 70), Vector3(90, 2, 85)],
+			["barn", Vector3(120, 12, 60), Vector3(145, 3, 25)],
+			["cornhole", Vector3(146, 9, 88), Vector3(146, 1, 62)],
+		]
+	elif which == "city":
+		views = [
+			["kc_front", Vector3(625, 60, 676), Vector3(625, 170, 445)],
+			["kc_side", Vector3(740, 90, 445), Vector3(625, 200, 445)],
+			["fais_front", Vector3(290, 50, 676), Vector3(290, 140, 445)],
+			["fais_top", Vector3(200, 190, 560), Vector3(290, 215, 445)],
+			["traffic_street", Vector3(450, 9, 250), Vector3(450, 2, 340)],
+			["traffic_wide", Vector3(380, 14, 330), Vector3(520, 3, 330)],
 		]
 	else:
 		views = [
-			["road_start", Vector3(60, 7, 111), Vector3(500, 4, 106)],
-			["gantry", Vector3(120, 5, 111), Vector3(220, 7, 100)],
-			["cliffs", Vector3(1500, 12, 100), Vector3(1700, 40, -250)],
-			["baqalah", Vector3(3000, 10, 128), Vector3(3105, 4, 160)],
-			["farm_gate", Vector3(6030, 9, 125), Vector3(6160, 6, 140)],
+			["traffic", Vector3(400, 6, 112), Vector3(700, 3, 108)],
+			["bump_warning", Vector3(4700, 7, 111), Vector3(4950, 5, 106)],
+			["bump_side", Vector3(5300, 14, 40), Vector3(5300, 2, 111)],
+			["bump_start", Vector3(4990, 5, 112), Vector3(5200, 2, 111)],
 		]
 	for v: Array in views:
-		cam.position = v[1]
-		cam.look_at(v[2])
+		if v[1] == null:
+			scene.cam.make_current()
+		else:
+			cam.make_current()
+			cam.position = v[1]
+			cam.look_at(v[2])
 		await get_tree().process_frame
 		await get_tree().process_frame
 		await RenderingServer.frame_post_draw

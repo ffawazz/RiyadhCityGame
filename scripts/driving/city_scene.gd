@@ -48,8 +48,8 @@ func _configure() -> void:
 	add_landmark(Rect2(698, 118, 84, 60), 14.0, Color.html("e8cf8c"), "SCHOOL")
 	add_landmark(Rect2(698, 578, 84, 46), 6.0, Color.html("cdd8a6"), "FARM ROAD")
 	# famous Riyadh sights keep their footprint free
-	reserved.append(Rect2(KINGDOM_CENTRE.x - 64, KINGDOM_CENTRE.y - 33, 128, 66))
-	reserved.append(Rect2(FAISALIYAH.x - 28, FAISALIYAH.y - 28, 56, 56))
+	reserved.append(Rect2(KINGDOM_CENTRE.x - 72, KINGDOM_CENTRE.y - 40, 144, 106))
+	reserved.append(Rect2(FAISALIYAH.x - 38, FAISALIYAH.y - 38, 76, 76))
 	reserved.append(Rect2(498, 148, 74, 60))     # Masmak-style fort
 	reserved.append(Rect2(293, 193, 74, 54))     # mosque
 	reserved.append(Rect2(488, 584, 76, 44))     # KAFD-style angular towers
@@ -67,7 +67,11 @@ func _build_lot(lot: Rect2) -> void:
 		arch.villa(lot, _rng.randf_range(7.0, 10.0), arch.sand_color())
 
 
+var traffic: Traffic
+
+
 func _decorate() -> void:
+	_build_traffic()
 	arch.kingdom_centre(KINGDOM_CENTRE)
 	arch.faisaliyah(FAISALIYAH)
 	arch.fort(Rect2(500, 150, 70, 56), "MASMAK FORT")
@@ -90,3 +94,31 @@ func _decorate() -> void:
 				add_palm_line(Vector2(xc, 15), Vector2(xc, world_rect.size.y - 15), 45.0)
 				var xl := r.get_center().x + side * (ROAD_HALF + 1.4)
 				add_lamp_line(Vector2(xl, 37), Vector2(xl, world_rect.size.y - 15), 45.0)
+
+
+## Cars on every lane of the 3x3 grid, with traffic lights at the nine intersections.
+## Keep right: eastbound lanes sit south of the centre line, westbound north of it, etc.
+func _build_traffic() -> void:
+	var xs := [100.0, 450.0, 800.0]
+	var zs := [100.0, 330.0, 560.0]
+	traffic = Traffic.new(self)
+	add_child(traffic)
+	var lane_off := 5.0
+	var gap := ROAD_HALF + 2.8
+	for z: float in zs:
+		var east_stops: Array = []
+		var west_stops: Array = []
+		for x: float in xs:
+			east_stops.append(x - gap)
+			west_stops.append(x + gap)
+		traffic.add_lane(0, 1, z + lane_off, 0.0, world_rect.size.x, east_stops, 14.0, 7)
+		traffic.add_lane(0, -1, z - lane_off, 0.0, world_rect.size.x, west_stops, 14.0, 7)
+	for x: float in xs:
+		var south_stops: Array = []
+		var north_stops: Array = []
+		for z: float in zs:
+			south_stops.append(z - gap)
+			north_stops.append(z + gap)
+		traffic.add_lane(1, 1, x - lane_off, 0.0, world_rect.size.y, south_stops, 13.0, 5)
+		traffic.add_lane(1, -1, x + lane_off, 0.0, world_rect.size.y, north_stops, 13.0, 5)
+	traffic.build_signals(xs, zs, ROAD_HALF)

@@ -44,7 +44,7 @@ flowchart TD
     C -->|Farm road trip| R[Highway to Al-Muzahimiyah]
     R -->|Pit stop| P[Baqalah: Snack Pack] --> R
     R -->|Farm gate| F[Pick animal: Duck / Goat / Chicken]
-    F --> FH[Farm Hub]
+    F --> FH[Walk around the 3D farm]
     FH --> F1[Swim] & F2[Ping Pong] & F3[Cornhole] & F4[Basketball]
     F1 & F2 & F3 & F4 --> FH
     FH -->|Drive home| C
@@ -59,9 +59,10 @@ flowchart TD
 * **Arcade-realistic handling:** bicycle-model steering, 5 simulated gears, engine that revs with gear changes, speed-sensitive steering lock, body roll and pitch. Velocity is separate from heading, so hard cornering at speed and the **SPACE handbrake** make the car genuinely slide (tyre squeal included). Walls and buildings are solid: crashes bleed speed, shake the camera and thump.
 * **Controls:** W/S gas & brake/reverse, A/D steer, SPACE handbrake, C camera, E enter, Esc menu. Gamepad: triggers, left stick, A handbrake, Y camera, X enter.
 * **The family car:** a low-poly blue 2019 Mazda CX-9 (grille and badge, LED headlights, C-shaped tail lamps, roof rails, spinning alloy wheels) with a Saudi number plate (**HXD**, Arabic row ه ص د over the Latin row, blue KSA strip; edit `PLATE_NUMBER` in `car.gd` for the digits). Everybody is visible through the tinted glass: **Dad driving** (left seat, white thobe and ghutra, turns his head and the wheel with your steering), **Mom** beside him, and **Daniah** (glasses), **Sarah** (tallest) and **Lamia** (smallest) on the back seat. They sway in corners.
-* **Riyadh city (900 x 680 m):** Najdi-style walled villas in sand tones with triangular crenellations and triangle-window bands, mid-rise shops with signboards and rooftop water tanks, a glass-tower business district with stepped crowns and pyramid tops, palm-lined avenues with lamp posts and raised sidewalks. Landmarks: **Kingdom Centre** (twin tower + sky bridge), **Al Faisaliyah** (golden sphere and spire), a **Masmak-style mud-brick fort**, a **mosque with minarets and dome**, and KAFD-style angular towers. Destinations: Home (SW), Tamimi Supermarket (NW), School (NE), Al-Muzahimiyah road gantry (SE).
+* **Riyadh city (900 x 680 m):** Najdi-style walled villas in sand tones with triangular crenellations and triangle-window bands, mid-rise shops with signboards and rooftop water tanks, a glass-tower business district with stepped crowns and pyramid tops, palm-lined avenues with lamp posts and raised sidewalks. Landmarks: **Kingdom Centre** (one 300 m silver-glass tower with the huge parabolic opening near the top and the sky bridge across it, on its mall podium), **Al Faisaliyah** (a 267 m tapering triangular glass tower, golden sphere held by three struts, faceted cap and spire), a **Masmak-style mud-brick fort**, a **mosque with minarets and dome**, and KAFD-style angular towers. Destinations: Home (SW), Tamimi Supermarket (NW), School (NE), Al-Muzahimiyah road gantry (SE).
+* **Traffic:** about 70 AI cars (sedans, SUVs, pickups, vans in Riyadh-typical white, silver, black and grey) drive the avenues and both highway carriageways, keep their distance, brake for you and stop at working **traffic lights** at the nine city intersections. Bumping them shakes the camera.
 * **Light-beam zones:** slow below ~30 km/h and press **E** inside a beam to enter. Minimap shows roads, zones and the car.
-* **Qiddiya-style farm road (6 km, ~2-3 min):** a modern dual carriageway (3 lanes each way, traffic keeps right, yellow median edge lines), concrete median barriers with shrubs and tall double-arm lamps, steel guard rails, green bilingual overhead gantries ("QIDDIYA ROAD", then an Al-Muzahimiyah km countdown), 120 km/h signs, scrub, acacia trees and rocks, under the layered limestone cliffs of the Tuwaiq escarpment. A forecourt slip road leads to the Baqalah pit stop; a green farm approach road ends at the farm gate arch.
+* **Qiddiya-style farm road (6 km, ~2-3 min):** a modern dual carriageway (3 lanes each way, traffic keeps right, yellow median edge lines), concrete median barriers with shrubs and tall double-arm lamps, steel guard rails, green bilingual overhead gantries ("QIDDIYA ROAD", then an Al-Muzahimiyah km countdown), 120 km/h signs, scrub, acacia trees and rocks, under the layered limestone cliffs of the Tuwaiq escarpment. About 5 km in comes the **roller-coaster road** (a 700 m stretch of rolling humps with sloped embankments, an 80 km/h warning gantry, lane lines that follow every hump): the car rides the bumps and goes airborne above ~100 km/h. A forecourt slip road leads to the Baqalah pit stop; a green farm approach road ends at the farm gate arch.
 * **Planned:** traffic and pedestrians, police "chase-lite" (friendly, no fail), time-of-day, car customisation.
 
 ## 5. Locations & mini-games
@@ -71,22 +72,20 @@ Every mini-game extends `MiniGameBase`: intro → play → results (0–3 stars)
 | Location | Mini-game | Rules (target design) | Perk hooks | Status |
 |---|---|---|---|---|
 | **Tamimi Supermarket** | Grocery Catch | 30 s. Move basket, catch dates/milk/bread/apples (+1), avoid soap (−1). 3★ ≥12, 2★ ≥7, 1★ ≥3 | Sarah wide basket, Daniah slow fall, Lamia +5 s | **Playable** |
-| **School** | Supplies Sort | Drag pencils/books/notebooks into the right bags; quick riddle round | Daniah hints | **Playable** |
-| **Home – Living Room** | Tidy-Up | Return scattered toys/cushions; find the hidden remote | Sarah reach for high shelves | **Playable** |
-| **Home – Kitchen** | Kitchen Helpers | Follow a simple recipe (karak/dessert) by adding ingredients in order | — | **Playable** |
+| **School** | **Run to Class!** | Side-scrolling hallway sprint: jump (double jump, hold for height) over backpacks, chairs, wet-floor signs and puddles; collect pencils (+1) and books (+3) before the bell | Daniah floatier jumps, Sarah wider pickup, Lamia +5 s | **Playable** |
+| **Home – Living Room** | **Living Room Dash** | Run around the messy room, carry up to 3 toys to the toy box; dodge the robot vacuum (stuns you) and the cheeky cat (steals/knocks toys) | Sarah reach, **Lamia: the cat never steals from her** | **Playable** |
+| **Home – Kitchen** | **Kitchen Rush** | Overcooked-style: take ingredients from crates, chop tomato, fry egg (don't burn it!), build the plate to match the family's orders | Lamia +5 s | **Playable** |
 | **Home – Backyard** | Treasure Hunt | Find hidden items; pet-the-cat bonus | Lamia animal bonus | **Playable** |
-| **Baqalah pit stop** | Snack Pack | 20 s grab-the-list-of-snacks into the trunk | Lamia +time | **Playable** |
+| **Baqalah pit stop** | **Baqalah Snack Run** | Frogger-style: cross the busy forecourt to the shop, grab the snack on the list, run back to Dad's car - without getting hit | Sarah faster, Daniah slower traffic, Lamia +5 s | **Playable** |
 | **Farm – Pool** | Pool Splash | Side-view swim, collect rings, dodge floaties | Duck `swim_speed` | **Playable** |
 | **Farm – Ping Pong** | Rally | Keep a rally alive vs. a friendly AI; stars = rally length | Chicken `reflex` | **Playable** |
 | **Farm – Cornhole** | Toss | Aim + power bar, 5 bags, stars by hits | Goat `jump` (strong throw) | **Playable** |
 | **Farm – Basketball** | Hoops | Timed jump shot, 5 shots | Goat `jump` | **Playable** |
 
-All ten mini-games are now playable first versions (greybox art). `placeholder_minigame.gd` remains as a template for new ones.
+All ten mini-games are playable (greybox art). Version 4 rebuilt the four boring ones (School, Baqalah, Living Room, Kitchen) as action games. `placeholder_minigame.gd` remains as a template for new ones.
 
-### Farm (Al-Muzahimiyah) — mechanics shift
-At the gate the player **leaves the car** and picks an animal avatar (**Duck, Goat, Chicken**).
-The animal is global state for the farm: `Game.animal_id`, with its own perks. The four farm
-activities are reachable from a hub and can be repeated or the animal switched at any time.
+### Farm (Al-Muzahimiyah) - walk to the game
+At the gate you pick an animal (**Duck, Goat, Chicken**), then the game becomes a **3D walking game**: you are the animal, walking (WASD, SPACE to jump) around a walled Najdi-style farm with palm groves, alfalfa fields, camels and hay bales. Each activity has its own spot with a glowing circle: the **swimming pool**, the **ping-pong table**, the **cornhole boards** and the **basketball hoop**. Step into a circle and press **E** to play. The **barn** lets you change animal and the parked family CX-9 at the gate drives you home. The animal's perks (duck swims faster, goat throws/jumps higher, chicken has quick reflexes) apply in the mini-games.
 
 ## 6. Progression & rewards
 
@@ -110,6 +109,7 @@ activities are reachable from a hub and can be repeated or the animal switched a
   * **Daniah - American rock:** driving E-A-B-A power-chord guitar, walking bass, backbeat drums, pentatonic lead riff (126 BPM).
   * **Sarah - Korean pop:** bright K-pop with the IV-V-iii-vi "royal road" progression, four-on-the-floor kick, claps, off-beat bass, sparkly synth arpeggios and a singable hook (120 BPM).
   * **Lamia - Arabic:** maqam Hijaz on D, oud (plucked string with tremolo picking) and nay (reed flute) over a darbuka playing the maqsum rhythm, with a D drone (96 BPM).
+  * **Your own songs:** put `lamia.mp3` (or `.ogg`, likewise `daniah` / `sarah`) in the game's `music` folder and that sister plays it instead (e.g. your own copy of a favourite song). The game never ships copyrighted recordings.
   * Car sound: live engine synthesis tied to RPM/gear, tyre squeal while sliding, crash thump.
 * **Cultural care:** show daily life accurately and kindly; ask the family which details matter (dress, food, greetings).
 * **Personal/privacy:** keep real names/photos local to your family copy; don't publish a build with real children's likenesses.
@@ -123,7 +123,8 @@ scripts/autoload/scene_router.gd Router – fade transitions; enter_location / s
 scripts/driving/                 Car (3D physics), ChaseCamera, EngineSound, Minimap, LocationZone, DriveScene (base), CityScene, FarmHighwayScene
 scripts/audio/music_synth.gd     procedural soundtrack renderer (american / korean / arabic)
 scripts/autoload/music.gd        Music – plays the track for the chosen sister, rendered on a worker thread
-scripts/menus/                   main_menu, character_select, animal_select, home_hub, farm_hub
+scripts/menus/                   main_menu, character_select, animal_select, home_hub
+scripts/farm/                    FarmWorld (walkable 3D farm), FarmAnimal (duck / goat / chicken avatars)
 scripts/minigames/               MiniGameBase, MiniGameRegistry, host scene, catch_groceries, placeholder
 scripts/ui/                      UIKit helpers, Portrait (placeholder art)
 ```

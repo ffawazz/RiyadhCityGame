@@ -13,19 +13,19 @@ const ENTRIES := {
 		"script": "res://scripts/minigames/catch_groceries.gd",
 	},
 	"school_puzzle": {
-		"title": "School Supplies Sort",
-		"instructions": "Sort pencils, books and notebooks into the right bags before the bell rings.",
-		"script": "res://scripts/minigames/school_sort.gd",
+		"title": "Run to Class!",
+		"instructions": "The bell is about to ring! Sprint down the hallway, jump over the backpacks and puddles, and grab pencils and books.\nW / Up / Space to jump - tap twice for a double jump.",
+		"script": "res://scripts/minigames/school_run.gd",
 	},
 	"living_room": {
-		"title": "Living Room Tidy-Up",
-		"instructions": "Put the cushions and toys back where they belong.",
-		"script": "res://scripts/minigames/tidy_living_room.gd",
+		"title": "Living Room Dash",
+		"instructions": "Mama is almost home! Run around, grab the toys and dump them in the toy box. Dodge the robot vacuum and the cheeky cat!\nWASD to run.",
+		"script": "res://scripts/minigames/living_room_dash.gd",
 	},
 	"kitchen": {
-		"title": "Kitchen Helpers",
-		"instructions": "Help cook: add the ingredients in the right order.",
-		"script": "res://scripts/minigames/kitchen_helpers.gd",
+		"title": "Kitchen Rush",
+		"instructions": "The family is hungry! Grab ingredients, chop the tomato, fry the egg and build the sandwich the order asks for.\nWASD walk, E / Space to use.",
+		"script": "res://scripts/minigames/kitchen_rush.gd",
 	},
 	"backyard": {
 		"title": "Backyard Treasure Hunt",
@@ -33,9 +33,9 @@ const ENTRIES := {
 		"script": "res://scripts/minigames/backyard_hunt.gd",
 	},
 	"baqalah_snacks": {
-		"title": "Baqalah Snack Pack",
-		"instructions": "Quick! Grab the snacks on the list and pack the car for the road trip.",
-		"script": "res://scripts/minigames/snack_pack.gd",
+		"title": "Baqalah Snack Run",
+		"instructions": "Dad is waiting in the car! Dash across the busy forecourt to the shop, grab the snack, and run back - without getting hit!\nWASD to move.",
+		"script": "res://scripts/minigames/snack_run.gd",
 	},
 	"farm_swim": {
 		"title": "Pool Splash",

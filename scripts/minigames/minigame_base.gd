@@ -90,6 +90,17 @@ func is_confirm(event: InputEvent) -> bool:
 	return event.is_action_pressed("ui_accept")
 
 
+## True for the "use" keys (E / Enter), Space, or a left click.
+func is_use(event: InputEvent) -> bool:
+	return event.is_action_pressed("interact") or is_confirm(event)
+
+
+## Circle vs rectangle overlap.
+func circle_hits_rect(c: Vector2, r: float, rect: Rect2) -> bool:
+	var nearest := Vector2(clampf(c.x, rect.position.x, rect.end.x), clampf(c.y, rect.position.y, rect.end.y))
+	return nearest.distance_to(c) < r
+
+
 func text(pos: Vector2, s: String, font_size: int = 24, color: Color = Color.WHITE) -> void:
 	draw_string(ThemeDB.fallback_font, pos, s, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 

@@ -79,6 +79,30 @@ const LOCATIONS := {
 		"title": "Baqalah Pit Stop", "title_ar": "بقالة",
 		"action": "minigame", "target": "baqalah_snacks", "return": "farm_highway", "color": "ff9f1c",
 	},
+	"farm_exit": {
+		"title": "Drive Home", "title_ar": "العودة للبيت",
+		"action": "scene", "target": "city", "spawn": "home", "color": "ffd166",
+	},
+	"farm_swim": {
+		"title": "Swimming Pool", "title_ar": "المسبح",
+		"action": "minigame", "target": "farm_swim", "return": "farm_world", "color": "48cae4",
+	},
+	"farm_pingpong": {
+		"title": "Ping Pong", "title_ar": "تنس الطاولة",
+		"action": "minigame", "target": "farm_pingpong", "return": "farm_world", "color": "ef476f",
+	},
+	"farm_cornhole": {
+		"title": "Cornhole", "title_ar": "كورنهول",
+		"action": "minigame", "target": "farm_cornhole", "return": "farm_world", "color": "f4a261",
+	},
+	"farm_basketball": {
+		"title": "Basketball", "title_ar": "كرة السلة",
+		"action": "minigame", "target": "farm_basketball", "return": "farm_world", "color": "fcbf49",
+	},
+	"barn": {
+		"title": "Barn: Change Animal", "title_ar": "الحظيرة",
+		"action": "scene", "target": "animal_select", "color": "a98467",
+	},
 	"farm_gate": {
 		"title": "Farm Gate", "title_ar": "بوابة المزرعة",
 		"action": "scene", "target": "animal_select", "color": "8ac926",

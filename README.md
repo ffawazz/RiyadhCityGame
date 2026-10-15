@@ -9,7 +9,9 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 
 **Controls:** W/S gas & brake (hold S to reverse), A/D steer, **SPACE handbrake (drift!)**, **C** camera (chase / far / hood), **E** enter a light-beam location (slow down first), Esc back to menu/skip. Gamepad supported.
 
-**Soundtrack:** Daniah = American rock, Sarah = Korean pop, Lamia = Arabic (maqam Hijaz). Generated in code.
+**Soundtrack:** Daniah = American rock, Sarah = Korean pop, Lamia = Arabic (maqam Hijaz). Generated in code. To play **your own song** for a sister, put `lamia.mp3` / `sarah.mp3` / `daniah.mp3` (or `.ogg`) in the `music` folder (see `music/README.txt`).
+
+**Farm:** pick an animal, then walk (WASD, SPACE jump) into the glowing circles to play. E enters.
 
 **Try it:** Play → pick a sister → drive to the supermarket circle (NW) → press E.
 
@@ -18,7 +20,7 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 * `godot --headless res://tests/music_test.tscn -- <folder>` renders the three tracks to WAV files.
 * `res://tests/drive_shots.tscn` takes driving screenshots (needs a real renderer).
 
-All ten mini-games are playable greybox versions; art and audio are the next step.
+All ten mini-games are playable greybox versions.
 
 **Make it yours:** the licence plate digits are `PLATE_NUMBER` / `PLATE_NUMBER_AR` at the top of `scripts/driving/car.gd`; clothes and skin colours of the family are in `_build_interior_and_people()`.
 Fonts: `assets/fonts/NotoSansArabic.ttf` (SIL Open Font License, see `OFL-NotoSansArabic.txt`).

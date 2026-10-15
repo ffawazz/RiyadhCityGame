@@ -8,6 +8,7 @@ signal car_exited(zone: LocationZone)
 
 const RADIUS := 15.0
 
+var radius: float = RADIUS
 var location_id: String = ""
 var title: String = ""
 var tint: Color = Color.WHITE
@@ -16,7 +17,8 @@ var _beam_mat: StandardMaterial3D
 var _t: float = 0.0
 
 
-func setup(id: String, pos: Vector2) -> void:
+func setup(id: String, pos: Vector2, zone_radius: float = RADIUS) -> void:
+	radius = zone_radius
 	location_id = id
 	position = Vector3(pos.x, 0.0, pos.y)
 	var data: Dictionary = Game.LOCATIONS[id]
@@ -28,7 +30,7 @@ func _ready() -> void:
 	collision_layer = 0
 	collision_mask = 1
 	var shape := CylinderShape3D.new()
-	shape.radius = RADIUS
+	shape.radius = radius
 	shape.height = 8.0
 	var cs := CollisionShape3D.new()
 	cs.shape = shape
@@ -42,20 +44,20 @@ func _ready() -> void:
 	_beam_mat.albedo_color = Color(tint, 0.2)
 	var beam := MeshInstance3D.new()
 	var cyl := CylinderMesh.new()
-	cyl.top_radius = RADIUS
-	cyl.bottom_radius = RADIUS
-	cyl.height = 45.0
+	cyl.top_radius = radius
+	cyl.bottom_radius = radius
+	cyl.height = 45.0 if radius > 10.0 else 14.0
 	cyl.radial_segments = 20
 	beam.mesh = cyl
-	beam.position.y = 22.5
+	beam.position.y = cyl.height * 0.5
 	beam.material_override = _beam_mat
 	beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(beam)
 
 	var ring := MeshInstance3D.new()
 	var disk := CylinderMesh.new()
-	disk.top_radius = RADIUS
-	disk.bottom_radius = RADIUS
+	disk.top_radius = radius
+	disk.bottom_radius = radius
 	disk.height = 0.05
 	disk.radial_segments = 28
 	ring.mesh = disk
@@ -71,12 +73,12 @@ func _ready() -> void:
 	var lbl := Label3D.new()
 	lbl.text = title
 	lbl.font_size = 64
-	lbl.pixel_size = 0.045
+	lbl.pixel_size = 0.045 if radius > 10.0 else 0.021
 	lbl.outline_size = 14
 	lbl.modulate = Color.WHITE
 	lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	lbl.no_depth_test = true
-	lbl.position.y = 16.0
+	lbl.position.y = 16.0 if radius > 10.0 else 7.0
 	add_child(lbl)
 
 	body_entered.connect(func(body: Node3D) -> void:

@@ -11,7 +11,7 @@ const SCENES := {
 	"farm_highway": "res://scenes/farm_highway.tscn",
 	"home_hub": "res://scenes/home_hub.tscn",
 	"animal_select": "res://scenes/animal_select.tscn",
-	"farm_hub": "res://scenes/farm_hub.tscn",
+	"farm_world": "res://scenes/farm_world.tscn",
 	"minigame": "res://scenes/minigame_host.tscn",
 }
 

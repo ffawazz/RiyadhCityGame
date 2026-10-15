@@ -20,6 +20,7 @@ var fog_density: float = 0.0035
 var fog_color: Color = Color.html("efd9b4")
 var ground_color: Color = Color.html("c4ad7e")
 var palm_collisions: bool = true
+var flat_skip: Array = []     # road rects NOT drawn flat (the scene draws them itself)
 var auto_markings: bool = true # centre dashes + edge lines for every road rect
 var markings: Array = []       # custom lane lines, see add_marking()
 var arch: RiyadhBuilder
@@ -55,6 +56,11 @@ func _build_lot(lot: Rect2) -> void:
 
 func _extra_info() -> String:
 	return ""
+
+
+## Ground height at (x, z). Override for hills / the roller-coaster road.
+func ground_height(_x: float, _z: float) -> float:
+	return 0.0
 
 
 # ---- helpers for subclasses ---------------------------------------------------
@@ -220,6 +226,8 @@ func _build_ground_and_roads() -> void:
 
 	var asphalt := arch.flat(Color.html("3a3d42"))
 	for r: Rect2 in roads:
+		if flat_skip.has(r):
+			continue
 		var mi := MeshInstance3D.new()
 		var bm := BoxMesh.new()
 		bm.size = Vector3(r.size.x, 0.1, r.size.y)
@@ -415,11 +423,15 @@ func _spawn_car() -> void:
 	var spawn: Dictionary = spawns.get(Game.spawn_id, default_spawn)
 	var pos: Vector2 = spawn["pos"]
 	car = Car.new()
-	car.position = Vector3(pos.x, 0.0, pos.y)
+	car.ground_fn = ground_height
+	car.position = Vector3(pos.x, ground_height(pos.x, pos.y), pos.y)
 	car.rotation.y = spawn["yaw"]
 	add_child(car)
 	_engine = EngineSound.new()
 	car.add_child(_engine)
+	for child in get_children():
+		if child is Traffic:
+			(child as Traffic).player = car
 	chase_cam = ChaseCamera.new()
 	chase_cam.target = car
 	add_child(chase_cam)

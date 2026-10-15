@@ -337,50 +337,134 @@ func fort(rect: Rect2, sign_text: String) -> void:
 		label(sign_text, Vector3(rect.get_center().x, 30.0, rect.get_center().y))
 
 
-## Twin towers joined by a sky bridge near the top, on a mall podium.
+const KC_HEIGHT := 300.0   # real Kingdom Centre: 302 m, 99 floors
+
+## Kingdom Centre as built: one slender silver-glass tower whose top is cut by a huge
+## inverted-parabola opening ("the bottle opener"), with the sky bridge spanning the
+## opening near the top, standing on a low mall podium.
 func kingdom_centre(c: Vector2) -> void:
-	var silver := Color.html("8fa5b8")
-	var glass := Color.html("6f9fc4")
-	solid(Rect2(c.x - 62.0, c.y - 31.0, 124.0, 62.0), 12.0, Color.html("e0d4b8"), 1)
-	solid(Rect2(c.x - 52.0, c.y - 18.0, 34.0, 36.0), 160.0, silver, 3, 0.0, glass)
-	solid(Rect2(c.x + 18.0, c.y - 18.0, 34.0, 36.0), 160.0, silver, 3, 0.0, glass)
-	deco(Vector3(c.x, 150.0, c.y), Vector3(72.0, 14.0, 36.0), silver, 0.0, 0.5)   # the sky bridge
-	label("KINGDOM CENTRE", Vector3(c.x, 182.0, c.y), 96, 0.09)
-
-
-## Al Faisaliyah: tapering shaft, golden sphere and spire.
-func faisaliyah(c: Vector2) -> void:
-	solid(Rect2(c.x - 26.0, c.y - 26.0, 52.0, 52.0), 9.0, Color.html("e6dbc0"), 1)
+	var silver := Color.html("a7bccd")
+	var glass := Color.html("5f9ac8")
+	# mall podium with two low wings
+	solid(Rect2(c.x - 70.0, c.y - 38.0, 140.0, 76.0), 14.0, Color.html("e0d4b8"), 1)
+	solid(Rect2(c.x - 70.0, c.y + 38.0, 48.0, 26.0), 9.0, Color.html("d9cdb0"), 1)
+	solid(Rect2(c.x + 22.0, c.y + 38.0, 48.0, 26.0), 9.0, Color.html("d9cdb0"), 1)
+	var w := 66.0
+	var d := 36.0
+	var y_open := 175.0     # where the opening begins
+	var y_apex := 291.0     # top of the parabola
+	var open_half := w * 0.5 - 5.5
 	var body := StaticBody3D.new()
-	body.position = Vector3(c.x, 60.0, c.y)
-	var shape := BoxShape3D.new()
-	shape.size = Vector3(20.0, 120.0, 20.0)
+	scene.add_child(body)
+	var x0 := c.x - w * 0.5
+	var z0 := c.y - d * 0.5
+	_tower_slab(body, Rect2(x0, z0, w, d), 14.0, y_open - 14.0, silver, glass)
+	var y := y_open
+	var bridge_half := 0.0
+	while y < KC_HEIGHT:
+		var top := minf(y + 4.0, KC_HEIGHT)
+		var mid := (y + top) * 0.5
+		var half := 0.0
+		if mid < y_apex:
+			half = open_half * sqrt(clampf((y_apex - mid) / (y_apex - y_open), 0.0, 1.0))
+		if mid > 273.0 and mid < 279.0:
+			bridge_half = half
+		if half > 1.0:
+			var leg := w * 0.5 - half
+			_tower_slab(body, Rect2(x0, z0, leg, d), y, top - y, silver, glass)
+			_tower_slab(body, Rect2(x0 + w - leg, z0, leg, d), y, top - y, silver, glass)
+		else:
+			_tower_slab(body, Rect2(x0, z0, w, d), y, top - y, silver, glass)
+		y = top
+	# the sky bridge across the opening
+	deco(Vector3(c.x, 276.0, c.y), Vector3(bridge_half * 2.0 + 2.0, 6.0, d * 0.78), Color.html("93a8ba"), 0.0, 0.5)
+	label("KINGDOM CENTRE", Vector3(c.x, KC_HEIGHT + 24.0, c.y), 96, 0.12)
+
+
+func _tower_slab(body: StaticBody3D, rect: Rect2, y0: float, h: float, color: Color, glass: Color) -> void:
 	var cs := CollisionShape3D.new()
-	cs.shape = shape
+	var box := BoxShape3D.new()
+	box.size = Vector3(rect.size.x, h, rect.size.y)
+	cs.shape = box
+	cs.position = Vector3(rect.get_center().x, y0 + h * 0.5, rect.get_center().y)
 	body.add_child(cs)
 	var mi := MeshInstance3D.new()
-	var cyl := CylinderMesh.new()
-	cyl.top_radius = 6.0
-	cyl.bottom_radius = 17.0
-	cyl.height = 120.0
-	cyl.radial_segments = 4
-	mi.mesh = cyl
-	mi.rotation_degrees.y = 45.0
-	mi.material_override = wall_material(Color.html("c9ccd1"), 3, 120.0, Color.html("5b8fa8"))
+	var bm := BoxMesh.new()
+	bm.size = box.size
+	mi.mesh = bm
+	mi.position = cs.position
+	mi.material_override = wall_material(color, 3, KC_HEIGHT, glass)
+	body.add_child(mi)
+
+
+## Al Faisaliyah Center as built (Foster + Partners, 267 m): a triangular glass tower that
+## tapers upward, a big golden sphere carried at the top by three slender struts, then a
+## faceted pyramid cap and a spire.
+func faisaliyah(c: Vector2) -> void:
+	var podium_h := 10.0
+	solid(Rect2(c.x - 36.0, c.y - 36.0, 72.0, 72.0), podium_h, Color.html("e6dbc0"), 1)
+	var frame := Color.html("c9ccd1")
+	var glass := Color.html("5b8fa8")
+	var shaft_h := 170.0
+	var shaft := CylinderMesh.new()          # 3 sides = triangular plan
+	shaft.top_radius = 9.0
+	shaft.bottom_radius = 30.0
+	shaft.height = shaft_h
+	shaft.radial_segments = 3
+	var body := StaticBody3D.new()
+	body.position = Vector3(c.x, podium_h + shaft_h * 0.5, c.y)
+	var cs := CollisionShape3D.new()
+	cs.shape = shaft.create_convex_shape()
+	body.add_child(cs)
+	var mi := MeshInstance3D.new()
+	mi.mesh = shaft
+	mi.material_override = wall_material(frame, 3, 270.0, glass)
 	body.add_child(mi)
 	scene.add_child(body)
+	var shaft_top := podium_h + shaft_h
+	# golden sphere (the "globe" restaurant) held by three struts
 	var ball := MeshInstance3D.new()
 	var sph := SphereMesh.new()
-	sph.radius = 9.0
-	sph.height = 18.0
-	sph.radial_segments = 14
-	sph.rings = 8
+	sph.radius = 12.0
+	sph.height = 24.0
+	sph.radial_segments = 16
+	sph.rings = 9
 	ball.mesh = sph
-	ball.position = Vector3(c.x, 128.0, c.y)
-	ball.material_override = flat(Color.html("d4a84b"), 0.8, 0.25)
+	ball.position = Vector3(c.x, shaft_top + 12.0, c.y)
+	ball.material_override = flat(Color.html("d9a93f"), 0.85, 0.25)
 	scene.add_child(ball)
-	deco(Vector3(c.x, 152.0, c.y), Vector3(0.7, 36.0, 0.7), Color.html("8d99ae"), 0.0, 0.6)
-	label("AL FAISALIYAH", Vector3(c.x, 175.0, c.y), 96, 0.09)
+	var cap_base := shaft_top + 28.0
+	for i in 3:
+		var ang := float(i) * TAU / 3.0
+		var dir := Vector3(sin(ang), 0.0, cos(ang))
+		_strut(Vector3(c.x, shaft_top, c.y) + dir * 9.0, Vector3(c.x, cap_base, c.y) + dir * 16.0, 0.9, frame)
+	# faceted cap and spire
+	var cap := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.8
+	cm.bottom_radius = 16.0
+	cm.height = 62.0
+	cm.radial_segments = 3
+	cap.mesh = cm
+	cap.position = Vector3(c.x, cap_base + 31.0, c.y)
+	cap.material_override = wall_material(frame, 3, 270.0, glass)
+	scene.add_child(cap)
+	deco(Vector3(c.x, cap_base + 62.0 + 10.0, c.y), Vector3(0.7, 22.0, 0.7), Color.html("8d99ae"), 0.0, 0.6)
+	label("AL FAISALIYAH", Vector3(c.x, cap_base + 100.0, c.y), 96, 0.12)
+
+
+func _strut(a: Vector3, b: Vector3, radius: float, color: Color) -> void:
+	var mi := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = radius
+	cyl.bottom_radius = radius
+	cyl.height = a.distance_to(b)
+	cyl.radial_segments = 5
+	mi.mesh = cyl
+	mi.position = (a + b) * 0.5
+	mi.basis = Basis(Quaternion(Vector3.UP, (b - a).normalized()))
+	mi.material_override = flat(color, 0.5, 0.4)
+	scene.add_child(mi)
 
 
 func _wall_ring(rect: Rect2, h: float, color: Color) -> void:

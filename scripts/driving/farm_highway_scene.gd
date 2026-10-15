@@ -12,6 +12,14 @@ const LANE_Z := 111.2            # middle lane of the eastbound (south) carriage
 const MEDIAN_TOP := 95.0
 const MEDIAN_BOTTOM := 105.0
 
+## The "roller coaster" road: a bumpy stretch of rolling humps just before the farm.
+const BUMP_X0 := 5000.0
+const BUMP_X1 := 5700.0
+const BUMP_WAVELENGTH := 50.0
+const BUMP_AMPLITUDE := 2.0
+const BUMP_Z0 := 74.0            # embankment foot (north)
+const BUMP_Z1 := 126.0           # embankment foot (south)
+
 const ROCK_SHADER := """
 shader_type spatial;
 uniform vec4 c1 : source_color = vec4(0.72, 0.5, 0.32, 1.0);
@@ -40,23 +48,28 @@ func _configure() -> void:
 	ground_color = Color.html("cfa972")
 	auto_markings = false
 	palm_collisions = false
-	# carriageways: north (west-bound) and south (east-bound), plus the two slip roads
-	roads.append(Rect2(0, 81.0, LENGTH, 14.0))
-	roads.append(Rect2(0, 105.0, LENGTH, 14.0))
+	# carriageways: north (west-bound) and south (east-bound), plus the two slip roads.
+	# The bumpy section is drawn separately (see _build_bumpy_road), so flat road skips it.
+	for z0: float in [81.0, 105.0]:
+		roads.append(Rect2(0, z0, BUMP_X0, 14.0))
+		roads.append(Rect2(BUMP_X1, z0, LENGTH - BUMP_X1, 14.0))
+		var bump := Rect2(BUMP_X0, z0, BUMP_X1 - BUMP_X0, 14.0)
+		roads.append(bump)
+		flat_skip.append(bump)
 	roads.append(Rect2(3030, 119.0, 150, 36))      # Baqalah forecourt
 	roads.append(Rect2(6030, 119.0, 170, 30))      # farm approach
 
 	var white := Color.html("f4f1de")
 	var yellow := Color.html("f2c230")
-	# eastbound lanes z 105.8..116.6, westbound 83.4..94.2
-	add_marking(true, 0, LENGTH, 109.4, 0.2, true, white)
-	add_marking(true, 0, LENGTH, 113.0, 0.2, true, white)
-	add_marking(true, 0, LENGTH, 87.0, 0.2, true, white)
-	add_marking(true, 0, LENGTH, 90.6, 0.2, true, white)
-	add_marking(true, 0, LENGTH, 116.6, 0.25, false, white)     # outer edge lines
-	add_marking(true, 0, LENGTH, 83.4, 0.25, false, white)
-	add_marking(true, 0, LENGTH, 105.8, 0.25, false, yellow)    # inner (median-side) edge lines
-	add_marking(true, 0, LENGTH, 94.2, 0.25, false, yellow)
+	for seg: Vector2 in [Vector2(0.0, BUMP_X0), Vector2(BUMP_X1, LENGTH)]:
+		var len := seg.y - seg.x
+		# eastbound lanes z 105.8..116.6, westbound 83.4..94.2
+		for zl: float in [109.4, 113.0, 87.0, 90.6]:
+			add_marking(true, seg.x, len, zl, 0.2, true, white)
+		for zl: float in [116.6, 83.4]:
+			add_marking(true, seg.x, len, zl, 0.25, false, white)     # outer edge lines
+		for zl: float in [105.8, 94.2]:
+			add_marking(true, seg.x, len, zl, 0.25, false, yellow)    # inner (median-side) edge lines
 
 	add_zone("city_return", Vector2(60, LANE_Z), Vector2(60, 0))
 	add_zone("baqalah", Vector2(3105, 137))
@@ -68,28 +81,45 @@ func _configure() -> void:
 	add_landmark(Rect2(3068, 162, 74, 30), 6.0, Color.html("e9d4a0"), "BAQALAH")
 
 
+## The roller-coaster section: smooth humps (always above the desert floor), with sloped
+## embankments at the sides. Everything that drives here (player + traffic) follows it.
+func ground_height(x: float, z: float) -> float:
+	if x <= BUMP_X0 or x >= BUMP_X1 or z <= BUMP_Z0 or z >= BUMP_Z1:
+		return 0.0
+	var ease_in_out := clampf(minf(x - BUMP_X0, BUMP_X1 - x) / 40.0, 0.0, 1.0)
+	var wave := 0.5 - 0.5 * cos(TAU * (x - BUMP_X0) / BUMP_WAVELENGTH)
+	var side := clampf(minf(z - BUMP_Z0, BUMP_Z1 - z) / 7.0, 0.0, 1.0)
+	return BUMP_AMPLITUDE * ease_in_out * wave * side
+
+
 func _extra_info() -> String:
 	return "    To farm: %.1f km" % maxf(0.0, (GATE_X - car.position.x) / 1000.0)
 
 
 func _decorate() -> void:
 	_build_median()
+	_build_bumpy_road()
 	_build_rails_and_signs()
+	_build_traffic()
 	_build_desert()
 	_build_escarpment()
 	_build_farm_gate()
 	# overhead gantries (eastbound view): Qiddiya Road first, then the km countdown
 	add_gantry(Vector2(220, 100), 40.0, "طريق القدية\nQIDDIYA ROAD")
 	for km in range(1, 6):
+		if km == 5:
+			continue   # the roller-coaster warning gantry takes this spot
 		add_gantry(Vector2(km * 1000.0, 100), 40.0, "المزاحمية\nAL-MUZAHIMIYAH  %d KM" % (6 - km))
+	add_gantry(Vector2(BUMP_X0 - 160.0, 100), 40.0, "طريق الرولركوستر\nROLLER COASTER ROAD  80")
 
 
 func _build_median() -> void:
 	# raised median, concrete barriers on both edges (solid), shrubs, tall double-arm lamps
-	arch.deco(Vector3(LENGTH * 0.5, 0.08, 100.0), Vector3(LENGTH, 0.16, MEDIAN_BOTTOM - MEDIAN_TOP), Color.html("a69f8f"))
 	var barrier_color := Color.html("c4beb0")
-	arch.solid(Rect2(0, MEDIAN_TOP, LENGTH, 0.55), 0.9, barrier_color, 0)
-	arch.solid(Rect2(0, MEDIAN_BOTTOM - 0.55, LENGTH, 0.55), 0.9, barrier_color, 0)
+	for seg: Vector2 in [Vector2(0.0, BUMP_X0), Vector2(BUMP_X1, LENGTH)]:
+		arch.deco(Vector3((seg.x + seg.y) * 0.5, 0.08, 100.0), Vector3(seg.y - seg.x, 0.16, MEDIAN_BOTTOM - MEDIAN_TOP), Color.html("a69f8f"))
+		arch.solid(Rect2(seg.x, MEDIAN_TOP, seg.y - seg.x, 0.55), 0.9, barrier_color, 0)
+		arch.solid(Rect2(seg.x, MEDIAN_BOTTOM - 0.55, seg.y - seg.x, 0.55), 0.9, barrier_color, 0)
 	var shrub_mesh := SphereMesh.new()
 	shrub_mesh.radius = 0.8
 	shrub_mesh.height = 1.2
@@ -98,6 +128,9 @@ func _build_median() -> void:
 	var shrubs: Array = []
 	var x := 5.0
 	while x < LENGTH:
+		if x > BUMP_X0 - 5.0 and x < BUMP_X1 + 5.0:
+			x += 3.5
+			continue
 		var z := 100.0 + _rng.randf_range(-1.5, 1.5)
 		shrubs.append(Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * _rng.randf_range(0.8, 1.4)), Vector3(x, 0.6, z)))
 		x += 3.5
@@ -107,6 +140,9 @@ func _build_median() -> void:
 	var heads: Array = []
 	var lx := 30.0
 	while lx < LENGTH:
+		if lx > BUMP_X0 - 20.0 and lx < BUMP_X1 + 20.0:
+			lx += 45.0
+			continue
 		poles.append(Transform3D(Basis.IDENTITY, Vector3(lx, 5.5, 100.0)))
 		for side: float in [-1.0, 1.0]:
 			arms.append(Transform3D(Basis.IDENTITY, Vector3(lx, 11.0, 100.0 + side * 3.0)))
@@ -134,11 +170,13 @@ func _build_median() -> void:
 func _build_rails_and_signs() -> void:
 	var rail := Color.html("b8bec7")
 	# steel guard rails along both outer edges, with gaps for the two slip roads
-	arch.solid(Rect2(0, 80.55, LENGTH, 0.2), 0.7, rail, 0)
+	for seg: Vector2 in [Vector2(0.0, BUMP_X0), Vector2(BUMP_X1, LENGTH)]:
+		arch.solid(Rect2(seg.x, 80.55, seg.y - seg.x, 0.2), 0.7, rail, 0)
 	arch.solid(Rect2(0, 119.3, 3030, 0.2), 0.7, rail, 0)
-	arch.solid(Rect2(3180, 119.3, 2850, 0.2), 0.7, rail, 0)
+	arch.solid(Rect2(3180, 119.3, BUMP_X0 - 3180.0, 0.2), 0.7, rail, 0)
+	arch.solid(Rect2(BUMP_X1, 119.3, 6030.0 - BUMP_X1, 0.2), 0.7, rail, 0)
 	# 120 km/h limit signs on the south shoulder
-	for sx in [800.0, 2600.0, 4400.0, 5600.0]:
+	for sx in [800.0, 2600.0, 4400.0, 5900.0]:
 		arch.deco(Vector3(sx, 1.6, 121.0), Vector3(0.12, 3.2, 0.12), Color.html("8d99ae"))
 		var ring := arch.deco(Vector3(sx, 3.6, 121.0), Vector3(0.06, 1.3, 1.3), Color.html("d62828"))
 		var disc := arch.deco(Vector3(sx - 0.05, 3.6, 121.0), Vector3(0.06, 0.95, 0.95), Color.html("fafafa"))
@@ -247,3 +285,67 @@ func _build_farm_gate() -> void:
 	lbl.rotation_degrees.y = -90.0
 	lbl.position = Vector3(6159.8, 13.5, 134.0)
 	add_child(lbl)
+
+
+## The roller-coaster section as one mesh: asphalt carriageways + painted median, sloped
+## sandy embankments, and lane lines that follow every hump.
+func _build_bumpy_road() -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var asphalt := Color.html("3a3d42")
+	var sand := Color.html("b4925f")
+	var zs := [BUMP_Z0, 81.0, 119.0, BUMP_Z1]
+	var cols := [sand, asphalt, sand]
+	var step := 2.0
+	var x := BUMP_X0
+	while x < BUMP_X1:
+		var x2 := minf(x + step, BUMP_X1)
+		for k in 3:
+			_bump_quad(st, x, x2, zs[k], zs[k + 1], cols[k], 0.0)
+		x = x2
+	var white := Color.html("f4f1de")
+	var yellow := Color.html("f2c230")
+	var lines := [
+		[109.4, 0.2, true, white], [113.0, 0.2, true, white], [87.0, 0.2, true, white], [90.6, 0.2, true, white],
+		[116.6, 0.25, false, white], [83.4, 0.25, false, white],
+		[105.8, 0.25, false, yellow], [94.2, 0.25, false, yellow], [99.8, 0.2, false, yellow], [100.2, 0.2, false, yellow]]
+	for ln: Array in lines:
+		var zc: float = ln[0]
+		var half: float = float(ln[1]) * 0.5
+		var i := 0
+		x = BUMP_X0
+		while x < BUMP_X1:
+			var x2b := minf(x + step, BUMP_X1)
+			if not ln[2] or (i % 5) < 2:
+				_bump_quad(st, x, x2b, zc - half, zc + half, ln[3], 0.04)
+			x = x2b
+			i += 1
+	st.generate_normals()
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mat.roughness = 1.0
+	mi.material_override = mat
+	add_child(mi)
+
+
+func _bump_quad(st: SurfaceTool, x0: float, x1: float, z0: float, z1: float, color: Color, lift: float) -> void:
+	var p := [Vector3(x0, ground_height(x0, z0) + lift, z0), Vector3(x1, ground_height(x1, z0) + lift, z0),
+			Vector3(x1, ground_height(x1, z1) + lift, z1), Vector3(x0, ground_height(x0, z1) + lift, z1)]
+	for idx in [0, 1, 2, 0, 2, 3]:
+		st.set_color(color)
+		st.add_vertex(p[idx])
+
+
+## Cars on all six lanes. Inner lanes are the fast ones.
+func _build_traffic() -> void:
+	var traffic := Traffic.new(self)
+	add_child(traffic)
+	var east := [[107.6, 36.0], [111.2, 31.0], [114.8, 26.0]]
+	var west := [[92.4, 36.0], [88.8, 31.0], [85.2, 26.0]]
+	for l: Array in east:
+		traffic.add_lane(0, 1, l[0], 0.0, LENGTH, [], l[1], 12, Vector2(0.0, 500.0))
+	for l: Array in west:
+		traffic.add_lane(0, -1, l[0], 0.0, LENGTH, [], l[1], 12)

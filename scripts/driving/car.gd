@@ -25,6 +25,11 @@ var engine_hz: float = 40.0        # engine firing frequency for the sound
 var throttle_amount: float = 0.0
 var sliding: bool = false
 var impact: float = 0.0            # last collision strength; the scene reads + clears it
+var airborne: bool = false
+var ground_fn: Callable = Callable()   # (x, z) -> ground height; set by the drive scene
+var vy: float = 0.0
+var _slope_pitch: float = 0.0
+const GRAVITY := 12.0
 
 ## Saudi number plate (letters HXD). The Arabic row uses the Saudi plate letter
 ## equivalents (H = ه, X = ص, D = د). Change PLATE_NUMBER to your real digits.
@@ -108,7 +113,7 @@ func _physics_process(delta: float) -> void:
 	velocity.y = 0.0
 	var speed_before := velocity.length()
 	move_and_slide()
-	position.y = 0.0
+	_update_height(delta)
 	impact = maxf(impact, speed_before - velocity.length())
 	forward_speed = velocity.dot(-global_transform.basis.z)
 	if absf(forward_speed) < 0.08 and throttle == 0.0:
@@ -116,6 +121,31 @@ func _physics_process(delta: float) -> void:
 
 	_update_engine(forward_speed)
 	_update_visuals(delta, throttle, brake)
+
+
+## Follows the ground height; crests launch the car (roller-coaster road), landings thump.
+func _update_height(delta: float) -> void:
+	if not ground_fn.is_valid():
+		position.y = 0.0
+		return
+	var gy: float = ground_fn.call(position.x, position.z)
+	var prev := position.y
+	vy = clampf(vy - GRAVITY * delta, -40.0, 40.0)
+	var ny := prev + vy * delta
+	if ny <= gy:
+		if airborne and vy < -4.0:
+			impact = maxf(impact, -vy * 1.4)   # landing thump + camera shake
+		airborne = false
+		vy = clampf((gy - prev) / maxf(delta, 0.0001), -40.0, 14.0)
+		ny = gy
+	else:
+		airborne = ny > gy + 0.2
+	position.y = ny
+	if not airborne:
+		var fwd := -global_transform.basis.z
+		var front: float = ground_fn.call(position.x + fwd.x * 1.6, position.z + fwd.z * 1.6)
+		var rear: float = ground_fn.call(position.x - fwd.x * 1.6, position.z - fwd.z * 1.6)
+		_slope_pitch = lerpf(_slope_pitch, atan2(front - rear, 3.2), 0.4)
 
 
 func _update_engine(fs: float) -> void:
@@ -133,7 +163,7 @@ func _update_engine(fs: float) -> void:
 func _update_visuals(delta: float, throttle: float, brake: float) -> void:
 	var accel_pitch := (brake * 0.025) - (throttle * 0.012 * (1.0 - absf(forward_speed) / MAX_SPEED))
 	var roll := -steer * absf(forward_speed) / MAX_SPEED * 0.07 - lateral_speed * 0.004
-	_visual.rotation.x = lerpf(_visual.rotation.x, accel_pitch, 1.0 - exp(-8.0 * delta))
+	_visual.rotation.x = lerpf(_visual.rotation.x, accel_pitch + _slope_pitch, 1.0 - exp(-8.0 * delta))
 	_visual.rotation.z = lerpf(_visual.rotation.z, roll, 1.0 - exp(-8.0 * delta))
 	for w in _front_wheels:
 		w.rotation.y = -steer * 0.5
