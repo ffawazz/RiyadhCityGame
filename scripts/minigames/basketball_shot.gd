@@ -1,6 +1,7 @@
 extends MiniGameBase
 
 const _Art := preload("res://scripts/ui/avatar_art.gd")
+const _Pose := preload("res://scripts/ui/pose_art.gd")
 ## Basketball: stop the swinging power meter on the green zone.
 ## 5 shots; a power meter swings back and forth, stop it inside the green zone.
 ## Goat's jump perk widens the green zone.
@@ -82,13 +83,23 @@ func _draw_game() -> void:
 	draw_line(hoop + Vector2(-34, 0), hoop + Vector2(34, 0), Color.html("e63946"), 6.0)
 	var start := Vector2(size.x * 0.2, size.y * 0.8)
 	draw_rect(Rect2(0, size.y - 80, size.x, 80), Color.html("bc6c25"))           # court
-	_Art.draw_animal(self, Game.animal_id, start + Vector2(-70, 50), 0.85, 1.0, 0.0, 0.0)
-	var ball := start
+	_Art.draw_animal(self, Game.animal_id, Vector2(80, size.y - 20), 0.7, 1.0, absf(sin(_t * 6.0)) * 10.0 if _phase == "result" and _made else 0.0)
+	# the chosen sister shoots: bends while aiming, stretches up on the release
+	var feet := Vector2(start.x, size.y - 30.0)
+	var rel := 0.0
+	if _phase == "aim":
+		rel = 0.15 + 0.1 * sin(_t * 5.0)
+	elif _phase == "fly":
+		rel = 1.0
+	else:
+		rel = 0.8
+	var held := _Pose.shooter(self, Game.character_id, feet, rel, 1.5, _phase == "aim")
+	var ball := held
 	if _phase != "aim":
 		var end := hoop + Vector2((_power - SWEET) * 700.0, 0.0)
 		if _made:
 			end = hoop
-		ball = start.lerp(end, _fly) + Vector2(0, -sin(_fly * PI) * 260.0)
+		ball = held.lerp(end, _fly) + Vector2(0, -sin(_fly * PI) * 260.0)
 	draw_circle(ball, 20.0, Color.html("e76f51"))
 	# power meter
 	var bar := Rect2(size.x * 0.5 - 200, size.y - 60, 400, 28)

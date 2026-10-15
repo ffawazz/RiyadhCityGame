@@ -10,6 +10,9 @@ const STATIONS := {
 	"farm_pingpong": Vector2(90, 48),
 	"farm_cornhole": Vector2(146, 70),
 	"farm_basketball": Vector2(90, 100),
+	"farm_archery": Vector2(125, 112),
+	"farm_swing": Vector2(48, 104),
+	"farm_moto": Vector2(160, 100),
 	"barn": Vector2(150, 40),
 	"farm_exit": Vector2(90, 126),
 }
@@ -21,6 +24,10 @@ var _rng := RandomNumberGenerator.new()
 var _active_zone: LocationZone
 var _prompt: Label
 var _palms: Array = []
+var families: Array[FarmFamily] = []
+var _swing_nodes: Array = []
+var _map: FarmMap
+var _t: float = 0.0
 
 
 func _ready() -> void:
@@ -35,10 +42,14 @@ func _ready() -> void:
 	_build_palms()
 	_spawn_zones()
 	_spawn_animal()
+	_spawn_families()
 	_build_hud()
 
 
 func _process(delta: float) -> void:
+	_t += delta
+	for sw: Node3D in _swing_nodes:
+		sw.rotation.x = sin(_t * 1.8 + sw.position.x) * 0.5
 	# third-person camera follows the animal
 	var target := animal.global_position
 	var want := target + Vector3(0.0, 9.5, 12.5)
@@ -186,6 +197,9 @@ func _build_stations() -> void:
 	ball.position = Vector3(86.0, 0.35, 102.0)
 	ball.material_override = arch.flat(Color.html("e76f51"))
 	add_child(ball)
+	_build_archery()
+	_build_swing()
+	_build_moto()
 	# --- the barn (change animal) ---
 	arch.solid(Rect2(134.0, 14.0, 34.0, 22.0), 9.0, Color.html("c9a66b"), 2)
 	arch.merlons(Rect2(134.0, 14.0, 34.0, 22.0), 9.0)
@@ -198,6 +212,99 @@ func _build_stations() -> void:
 	car.position = Vector3(70.0, 0.0, 128.0)
 	car.rotation.y = -PI / 2.0 + 0.25
 	add_child(car)
+
+
+func _build_archery() -> void:
+	var c := Vector2(125.0, 101.0)
+	# shooting shelf with bottles (sand / water / pepsi / cola) and a flag showing the wind
+	arch.deco(Vector3(c.x, 1.05, c.y), Vector3(9.0, 0.2, 1.4), Color.html("8b5e34"))
+	for lx: float in [-4.0, 4.0]:
+		arch.deco(Vector3(c.x + lx, 0.5, c.y), Vector3(0.3, 1.0, 1.0), Color.html("6f4518"))
+	var liquids := ["d9b26a", "9fd8f5", "1d3f8f", "3b1a10"]
+	for i in 8:
+		var bx := c.x - 3.5 + i
+		var col := Color.html(liquids[i % 4])
+		arch.deco(Vector3(bx, 1.6, c.y), Vector3(0.4, 0.9, 0.4), col)
+		arch.deco(Vector3(bx, 2.2, c.y), Vector3(0.16, 0.35, 0.16), Color(0.9, 0.95, 1.0))
+	arch.deco(Vector3(c.x, 1.0, c.y + 11.0), Vector3(7.0, 0.1, 0.5), Color.html("f4f1de"))      # shooting line
+	arch.deco(Vector3(c.x + 6.0, 2.5, c.y + 5.0), Vector3(0.12, 5.0, 0.12), Color.html("495057"))
+	arch.deco(Vector3(c.x + 6.8, 4.6, c.y + 5.0), Vector3(1.4, 0.7, 0.05), Color.html("e63946"))
+
+
+func _build_swing() -> void:
+	var c := Vector3(48.0, 0.0, 95.0)
+	for sz: float in [-1.6, 1.6]:
+		arch.deco(c + Vector3(-3.6, 1.8, sz), Vector3(0.2, 3.8, 0.2), Color.html("e63946"), 0.0).rotation_degrees.z = 8.0
+		arch.deco(c + Vector3(3.6, 1.8, sz), Vector3(0.2, 3.8, 0.2), Color.html("e63946"), 0.0).rotation_degrees.z = -8.0
+	arch.deco(c + Vector3(0.0, 3.7, 0.0), Vector3(7.6, 0.25, 0.25), Color.html("c1121f"))
+	for i in 2:
+		var piv := Node3D.new()
+		piv.position = c + Vector3(-1.5 + i * 3.0, 3.6, 0.0)
+		add_child(piv)
+		_swing_nodes.append(piv)
+		for rz: float in [-0.35, 0.35]:
+			var rope := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			bm.size = Vector3(0.05, 2.6, 0.05)
+			rope.mesh = bm
+			rope.position = Vector3(0.0, -1.3, rz)
+			rope.material_override = arch.flat(Color.html("343a40"))
+			piv.add_child(rope)
+		var seat := MeshInstance3D.new()
+		var sm := BoxMesh.new()
+		sm.size = Vector3(0.5, 0.1, 0.9)
+		seat.mesh = sm
+		seat.position = Vector3(0.0, -2.6, 0.0)
+		seat.material_override = arch.flat(Color.html("ffd166"))
+		piv.add_child(seat)
+
+
+func _build_moto() -> void:
+	var c := Vector3(160.0, 0.0, 90.0)
+	# dirt ramp
+	var ramp := arch.deco(c + Vector3(0.0, 0.9, -3.0), Vector3(6.0, 0.4, 7.0), Color.html("a66a3b"))
+	ramp.rotation_degrees.x = 16.0
+	arch.deco(c + Vector3(0.0, 0.06, 4.0), Vector3(8.0, 0.1, 14.0), Color.html("b5895a"))     # dirt track patch
+	# a parked dirt bike
+	var bike := Node3D.new()
+	bike.position = c + Vector3(-5.0, 0.0, 6.0)
+	bike.rotation.y = 0.7
+	add_child(bike)
+	for wz: float in [-0.7, 0.7]:
+		var w := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.38
+		cm.bottom_radius = 0.38
+		cm.height = 0.18
+		cm.radial_segments = 12
+		w.mesh = cm
+		w.rotation_degrees.z = 90.0
+		w.position = Vector3(0.0, 0.38, wz)
+		w.material_override = arch.flat(Color.html("212529"))
+		bike.add_child(w)
+	_cb(bike, Vector3(0.25, 0.3, 1.0), Vector3(0, 0.95, 0.0), Color.html("e63946"))
+	_cb(bike, Vector3(0.28, 0.12, 0.7), Vector3(0, 1.1, -0.35), Color.html("212529"))
+	_cb(bike, Vector3(0.5, 0.06, 0.06), Vector3(0, 1.3, 0.55), Color.html("212529"))
+
+
+func _spawn_families() -> void:
+	# loops along the sandy paths, avoiding the pool, court and tables
+	var loops: Array = [
+		[Vector2(64, 78), Vector2(116, 78), Vector2(116, 88), Vector2(64, 88)],
+		[Vector2(100, 44), Vector2(140, 44), Vector2(150, 54), Vector2(120, 54)],
+		[Vector2(86, 122), Vector2(86, 112), Vector2(70, 108), Vector2(70, 122)],
+		[Vector2(30, 30), Vector2(70, 30), Vector2(70, 12), Vector2(30, 12)],
+		[Vector2(112, 124), Vector2(150, 124), Vector2(150, 112), Vector2(112, 112)],
+	]
+	var kids := [2, 1, 3, 2, 1]
+	for i in loops.size():
+		var wp: Array[Vector2] = []
+		for v: Vector2 in loops[i]:
+			wp.append(v)
+		var fam := FarmFamily.new()
+		fam.setup(wp, kids[i], i + 3, 1.3 + 0.15 * i)
+		add_child(fam)
+		families.append(fam)
 
 
 func _build_decor() -> void:
@@ -324,9 +431,12 @@ func _build_hud() -> void:
 	info.text = "%s is %s the %s  -  Al-Muzahimiyah Farm" % [Game.character()["name"], Game.animal()["name"], Game.animal()["species"]]
 	info.position = Vector2(16, 10)
 	var help := _label(hud, 18)
-	help.text = "WASD walk   SPACE jump   E play   Walk into a glowing circle to play a game!   Esc menu"
+	help.text = "WASD walk   SPACE jump   E play   M big map   Walk into a glowing circle to play a game!   Esc menu"
 	help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
 	help.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_map = FarmMap.new()
+	_map.world = self
+	hud.add_child(_map)
 	_prompt = _label(hud, 32)
 	_prompt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 70)
 	_prompt.grow_horizontal = Control.GROW_DIRECTION_BOTH

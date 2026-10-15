@@ -52,6 +52,21 @@ const ENTRIES := {
 		"instructions": "Toss the bean bags into the hole. Hassan the goat throws farthest!",
 		"script": "res://scripts/minigames/cornhole_toss.gd",
 	},
+	"farm_archery": {
+		"title": "Bottle Archery",
+		"instructions": "Knock the sand, water, Pepsi and Cola bottles off the shelf! The WIND pushes your shot - watch the flag and aim into it.\nMove the mouse to aim, click or SPACE to shoot, TAB switches between the bow and the air rifle.",
+		"script": "res://scripts/minigames/archery_range.gd",
+	},
+	"farm_swing": {
+		"title": "Swing High!",
+		"instructions": "Pump the swing by pressing SPACE just as it starts to move forward. When you are really high, press UP / W at the top to jump off and fly as far as you can!",
+		"script": "res://scripts/minigames/swing_game.gd",
+	},
+	"farm_moto": {
+		"title": "Farm Motorbike",
+		"instructions": "Race the dirt track! Hold D / Right for gas, A / Left to brake. In the air tilt with W / S to land on both wheels. Grab the stars and jump the ramps!",
+		"script": "res://scripts/minigames/motorbike_game.gd",
+	},
 	"farm_basketball": {
 		"title": "Farm Basketball",
 		"instructions": "Time your jump and shoot hoops.",

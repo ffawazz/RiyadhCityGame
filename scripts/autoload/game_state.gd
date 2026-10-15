@@ -102,6 +102,18 @@ const LOCATIONS := {
 		"title": "Basketball", "title_ar": "كرة السلة",
 		"action": "minigame", "target": "farm_basketball", "return": "farm_world", "color": "fcbf49",
 	},
+	"farm_archery": {
+		"title": "Bottle Archery", "title_ar": "رماية",
+		"action": "minigame", "target": "farm_archery", "return": "farm_world", "color": "9b5de5",
+	},
+	"farm_swing": {
+		"title": "Swing Set", "title_ar": "المرجيحة",
+		"action": "minigame", "target": "farm_swing", "return": "farm_world", "color": "f15bb5",
+	},
+	"farm_moto": {
+		"title": "Motorbike Track", "title_ar": "دباب",
+		"action": "minigame", "target": "farm_moto", "return": "farm_world", "color": "fb5607",
+	},
 	"barn": {
 		"title": "Barn: Change Animal", "title_ar": "الحظيرة",
 		"action": "scene", "target": "animal_select", "color": "a98467",
@@ -124,7 +136,7 @@ const DAILY_GOALS := [
 	{"label": "Living Room", "ids": ["living_room"], "need": 1},
 	{"label": "Kitchen", "ids": ["kitchen"], "need": 1},
 	{"label": "Backyard", "ids": ["backyard"], "need": 1},
-	{"label": "Farm Fun", "ids": ["farm_swim", "farm_pingpong", "farm_cornhole", "farm_basketball"], "need": 1},
+	{"label": "Farm Fun", "ids": ["farm_swim", "farm_pingpong", "farm_cornhole", "farm_basketball", "farm_archery", "farm_swing", "farm_moto"], "need": 1},
 ]
 
 var character_id: String = "daniah"

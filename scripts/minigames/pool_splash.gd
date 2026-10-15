@@ -1,6 +1,7 @@
 extends MiniGameBase
 
 const _Art := preload("res://scripts/ui/avatar_art.gd")
+const _Pose := preload("res://scripts/ui/pose_art.gd")
 ## Farm pool: switch lanes with W/S or Up/Down, collect rings, avoid floaties.
 ## Duck's swim_speed makes the water rush by faster, so more rings arrive.
 
@@ -74,7 +75,7 @@ func _draw_game() -> void:
 		draw_line(Vector2(0, 130.0 + (size.y - 170.0) * l / LANES), Vector2(size.x, 130.0 + (size.y - 170.0) * l / LANES),
 				Color(1, 1, 1, 0.35), 3.0)
 	text(Vector2(24, 40), "Time %d    Rings %d" % [maxi(0, ceili(_time_left)), _rings], 28, Color.html("023e8a"))
-	text(Vector2(24, 80), "Swimming as %s the %s - W/S to change lane" % [Game.animal()["name"], Game.animal()["species"]], 22, Color.html("023e8a"))
+	text(Vector2(24, 80), "%s swims with %s the %s - W/S to change lane" % [Game.character()["name"], Game.animal()["name"], Game.animal()["species"]], 22, Color.html("023e8a"))
 	for o: Dictionary in _objs:
 		var p := Vector2(float(o["x"]), _lane_y(int(o["lane"])) + sin(_bob * 4.0 + float(o["x"]) * 0.02) * 4.0)
 		if o["ring"]:
@@ -85,5 +86,7 @@ func _draw_game() -> void:
 	var me := Vector2(PLAYER_X, _lane_y(_lane))
 	if _hit_flash > 0.0:
 		draw_circle(me, 44.0, Color(1.0, 0.0, 0.33, 0.45))
-	_Art.draw_animal(self, Game.animal_id, me + Vector2(0, 46), 0.5, 1.0, sin(_bob * 6.0) * 4.0, sin(_bob * 5.0) * 0.08)
-	draw_arc(me + Vector2(0, 28), 46.0, 0.2, PI - 0.2, 16, Color(1, 1, 1, 0.6), 3.0)   # ripple
+	# the chosen sister swims the crawl; her animal paddles along behind her
+	_Art.draw_animal(self, Game.animal_id, me + Vector2(-120, 34), 0.36, 1.0, sin(_bob * 6.0) * 3.0, sin(_bob * 5.0) * 0.08)
+	_Pose.swimmer(self, Game.character_id, me + Vector2(0, 6), _bob, 1.2)
+	draw_arc(me + Vector2(10, 28), 60.0, 0.2, PI - 0.2, 16, Color(1, 1, 1, 0.6), 3.0)   # ripple

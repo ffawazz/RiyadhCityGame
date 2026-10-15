@@ -30,6 +30,10 @@ func _ready() -> void:
 			["pingpong_hoop", Vector3(90, 12, 70), Vector3(90, 2, 85)],
 			["barn", Vector3(120, 12, 60), Vector3(145, 3, 25)],
 			["cornhole", Vector3(146, 9, 88), Vector3(146, 1, 62)],
+			["archery", Vector3(125, 9, 125), Vector3(125, 1.5, 101)],
+			["swing", Vector3(48, 8, 112), Vector3(48, 2, 95)],
+			["moto", Vector3(150, 9, 108), Vector3(160, 1, 92)],
+			["family", Vector3(90, 8, 92), Vector3(90, 1, 78)],
 		]
 	elif which == "city":
 		views = [
