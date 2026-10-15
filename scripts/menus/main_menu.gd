@@ -25,6 +25,7 @@ func _on_play() -> void:
 
 func _on_continue() -> void:
 	if Game.load_game():
+		Music.play_for(Game.character_id)
 		Router.go("city")
 
 

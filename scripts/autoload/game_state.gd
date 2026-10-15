@@ -198,17 +198,29 @@ func load_game() -> bool:
 # --- Input map (registered in code so the project file stays tiny) ------
 
 func _register_inputs() -> void:
-	_add_action("accelerate", [KEY_W, KEY_UP])
-	_add_action("brake", [KEY_S, KEY_DOWN])
-	_add_action("steer_left", [KEY_A, KEY_LEFT])
-	_add_action("steer_right", [KEY_D, KEY_RIGHT])
-	_add_action("interact", [KEY_E, KEY_ENTER, KEY_KP_ENTER])
+	_add_action("accelerate", [KEY_W, KEY_UP], [], [[JOY_AXIS_TRIGGER_RIGHT, 1.0]])
+	_add_action("brake", [KEY_S, KEY_DOWN], [], [[JOY_AXIS_TRIGGER_LEFT, 1.0]])
+	_add_action("steer_left", [KEY_A, KEY_LEFT], [], [[JOY_AXIS_LEFT_X, -1.0]], 0.2)
+	_add_action("steer_right", [KEY_D, KEY_RIGHT], [], [[JOY_AXIS_LEFT_X, 1.0]], 0.2)
+	_add_action("handbrake", [KEY_SPACE], [JOY_BUTTON_A])
+	_add_action("camera", [KEY_C], [JOY_BUTTON_Y])
+	_add_action("interact", [KEY_E, KEY_ENTER, KEY_KP_ENTER], [JOY_BUTTON_X])
 
 
-func _add_action(action: String, keys: Array) -> void:
+func _add_action(action: String, keys: Array, buttons: Array = [], axes: Array = [],
+		deadzone: float = 0.5) -> void:
 	if not InputMap.has_action(action):
-		InputMap.add_action(action)
+		InputMap.add_action(action, deadzone)
 	for key in keys:
 		var ev := InputEventKey.new()
 		ev.physical_keycode = key as Key
 		InputMap.action_add_event(action, ev)
+	for button in buttons:
+		var jb := InputEventJoypadButton.new()
+		jb.button_index = button as JoyButton
+		InputMap.action_add_event(action, jb)
+	for axis in axes:
+		var jm := InputEventJoypadMotion.new()
+		jm.axis = axis[0] as JoyAxis
+		jm.axis_value = axis[1]
+		InputMap.action_add_event(action, jm)

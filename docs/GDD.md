@@ -53,15 +53,15 @@ flowchart TD
 **Micro loop (30–90 s):** drive → see a glowing zone → press **E** → mini-game → stars → back on the road.
 **Macro loop (one "day", 10–20 min):** fill the daily checklist (Supermarket, School, Living Room, Kitchen, Backyard, Farm Fun) → day complete → sticker + unlocks.
 
-## 4. Navigation: driving
+## 4. Navigation: driving (3D, PS1 *Driver* feel)
 
-* Top-down arcade driving (W/S throttle & brake/reverse, A/D steer, E to enter, Esc to menu).
-* Soft collisions bleed speed; there is no damage. Walls at the map edge, buildings are solid.
-* **City map:** 3×3 street grid. Home (SW), Tamimi (NW), School (NE), highway/farm exit (SE).
-* **Farm highway:** a long straight road (~77 "km" on the HUD) with palms, a Baqalah pit stop halfway,
-  a "Back to Riyadh" turn-around at the start and the farm gate at the end. Passing time is the
-  "special longer sequence"; later add: sisters chatting, license-plate game, I-Spy, and camel/sheep crossings.
-* HUD: character name, speed (km/h), distance to farm, daily checklist, contextual "Press E" prompt.
+* **Third-person 3D chase camera** behind the blue CX-9 (low-poly, chunky 0.6x render scale, haze fog). The camera lags in corners so you see the car slide. **C** cycles Chase / Far / Hood views.
+* **Arcade-realistic handling:** bicycle-model steering, 5 simulated gears, engine that revs with gear changes, speed-sensitive steering lock, body roll and pitch. Velocity is separate from heading, so hard cornering at speed and the **SPACE handbrake** make the car genuinely slide (tyre squeal included). Walls and buildings are solid: crashes bleed speed, shake the camera and thump.
+* **Controls:** W/S gas & brake/reverse, A/D steer, SPACE handbrake, C camera, E enter, Esc menu. Gamepad: triggers, left stick, A handbrake, Y camera, X enter.
+* **City map (900 x 680 m):** 3x3 street grid, ~60 window-textured buildings in Riyadh sand tones, palms, a Kingdom Centre-style twin tower. Home (SW), Tamimi Supermarket (NW), School (NE) and the Al-Muzahimiyah road gantry (SE).
+* **Light-beam zones:** slow below ~30 km/h and press **E** inside a beam to enter. Minimap shows roads, zones and the car.
+* **Farm highway:** a 6 km straight highway (about 2-3 minutes) with palms, dunes, km gantries, a Baqalah pit stop halfway and the farm gate arch at the end; "To farm: x km" in the HUD.
+* **Planned:** traffic and pedestrians, police "chase-lite" (friendly, no fail), time-of-day, car customisation.
 
 ## 5. Locations & mini-games
 
@@ -105,7 +105,11 @@ activities are reachable from a hub and can be repeated or the animal switched a
 
 * **Art:** bright flat vector style, warm desert palette (sand, turquoise, blue car). Replace `Portrait` shapes with real sprites.
   Recognisable landmarks (Kingdom Centre, Faisaliyah) used as skyline art.
-* **Audio:** cheerful oud/percussion-inspired light music, car engine hum, mini-game stingers. All original or CC0.
+* **Audio:** every track and sound is synthesised in code (no files, no licensing). **The soundtrack follows the sister you pick:**
+  * **Daniah - American rock:** driving E-A-B-A power-chord guitar, walking bass, backbeat drums, pentatonic lead riff (126 BPM).
+  * **Sarah - Korean pop:** bright K-pop with the IV-V-iii-vi "royal road" progression, four-on-the-floor kick, claps, off-beat bass, sparkly synth arpeggios and a singable hook (120 BPM).
+  * **Lamia - Arabic:** maqam Hijaz on D, oud (plucked string with tremolo picking) and nay (reed flute) over a darbuka playing the maqsum rhythm, with a D drone (96 BPM).
+  * Car sound: live engine synthesis tied to RPM/gear, tyre squeal while sliding, crash thump.
 * **Cultural care:** show daily life accurately and kindly; ask the family which details matter (dress, food, greetings).
 * **Personal/privacy:** keep real names/photos local to your family copy; don't publish a build with real children's likenesses.
 * **Trademarks:** for a private family build the CX-9 and Tamimi names are fine; for a public release use generic "blue SUV" / "Supermarket".
@@ -115,7 +119,9 @@ activities are reachable from a hub and can be repeated or the animal switched a
 ```
 scripts/autoload/game_state.gd   Game   – data (characters, animals, locations, goals), progress, save, input map
 scripts/autoload/scene_router.gd Router – fade transitions; enter_location / start_minigame / finish_minigame
-scripts/driving/                 Car, LocationZone, DriveScene (base), CityScene, FarmHighwayScene
+scripts/driving/                 Car (3D physics), ChaseCamera, EngineSound, Minimap, LocationZone, DriveScene (base), CityScene, FarmHighwayScene
+scripts/audio/music_synth.gd     procedural soundtrack renderer (american / korean / arabic)
+scripts/autoload/music.gd        Music – plays the track for the chosen sister, rendered on a worker thread
 scripts/menus/                   main_menu, character_select, animal_select, home_hub, farm_hub
 scripts/minigames/               MiniGameBase, MiniGameRegistry, host scene, catch_groceries, placeholder
 scripts/ui/                      UIKit helpers, Portrait (placeholder art)
@@ -146,7 +152,7 @@ and the result exports to Windows/Mac/Linux and Web. Use **PyGame only if the go
 
 1. **M0 – Foundation (done):** menu, character/animal select, city + highway driving, router, save.
 1. **M0.5 – Greybox mini-games (done):** all ten mini-games playable, headless smoke test in `tests/`.
-2. **M1 – Polish the loop:** engine/ambient audio, real car & character art, day-complete screen, stickers.
+2. **M1 – Polish the loop (in progress):** 3D driving + procedural audio done; real car & character art, day-complete screen, stickers next.
 3. **M2 – Mini-games #1:** School Sort, Baqalah Snack Pack, Living Room, Kitchen, Backyard.
 4. **M3 – Farm:** swim, ping pong, cornhole, basketball with animal perks; farm return drive.
 5. **M4 – Content & feel:** traffic, pedestrians, radio, Arabic font/RTL pass, gamepad, family playtest.

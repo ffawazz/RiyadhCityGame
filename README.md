@@ -7,10 +7,15 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 * Engine: Godot 4.3+ (GDScript). Open this folder in Godot (first open imports the project and registers the `class_name` scripts), then press **F5**.
   Headless check: `godot --headless --import`.
 
-**Controls:** W/S throttle & brake, A/D steer, **E** enter a glowing location, Esc back to menu/skip.
+**Controls:** W/S gas & brake (hold S to reverse), A/D steer, **SPACE handbrake (drift!)**, **C** camera (chase / far / hood), **E** enter a light-beam location (slow down first), Esc back to menu/skip. Gamepad supported.
+
+**Soundtrack:** Daniah = American rock, Sarah = Korean pop, Lamia = Arabic (maqam Hijaz). Generated in code.
 
 **Try it:** Play → pick a sister → drive to the supermarket circle (NW) → press E.
 
-**Test:** `godot --headless res://tests/smoke_test.tscn` loads every scene and plays every mini-game with simulated input (verified on Godot 4.3).
+**Tests (Godot 4.3):**
+* `godot --headless res://tests/smoke_test.tscn` loads every scene, plays every mini-game and drives the car (headless prints harmless `mesh_get_surface_count` messages from the dummy renderer).
+* `godot --headless res://tests/music_test.tscn -- <folder>` renders the three tracks to WAV files.
+* `res://tests/drive_shots.tscn` takes driving screenshots (needs a real renderer).
 
 All ten mini-games are playable greybox versions; art and audio are the next step.

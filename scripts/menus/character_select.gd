@@ -35,5 +35,6 @@ func _ready() -> void:
 
 func _on_pick(id: String) -> void:
 	Game.select_character(id)
+	Music.play_for(id)
 	Game.spawn_id = "home"
 	Router.go("city")
