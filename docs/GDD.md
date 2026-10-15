@@ -70,18 +70,17 @@ Every mini-game extends `MiniGameBase`: intro → play → results (0–3 stars)
 | Location | Mini-game | Rules (target design) | Perk hooks | Status |
 |---|---|---|---|---|
 | **Tamimi Supermarket** | Grocery Catch | 30 s. Move basket, catch dates/milk/bread/apples (+1), avoid soap (−1). 3★ ≥12, 2★ ≥7, 1★ ≥3 | Sarah wide basket, Daniah slow fall, Lamia +5 s | **Playable** |
-| **School** | Supplies Sort | Drag pencils/books/notebooks into the right bags; quick riddle round | Daniah hints | Placeholder |
-| **Home – Living Room** | Tidy-Up | Return scattered toys/cushions; find the hidden remote | Sarah reach for high shelves | Placeholder |
-| **Home – Kitchen** | Kitchen Helpers | Follow a simple recipe (karak/dessert) by adding ingredients in order | — | Placeholder |
-| **Home – Backyard** | Treasure Hunt | Find hidden items; pet-the-cat bonus | Lamia animal bonus | Placeholder |
-| **Baqalah pit stop** | Snack Pack | 20 s grab-the-list-of-snacks into the trunk | Lamia +time | Placeholder |
-| **Farm – Pool** | Pool Splash | Side-view swim, collect rings, dodge floaties | Duck `swim_speed` | Placeholder |
-| **Farm – Ping Pong** | Rally | Keep a rally alive vs. a friendly AI; stars = rally length | Chicken `reflex` | Placeholder |
-| **Farm – Cornhole** | Toss | Aim + power bar, 5 bags, stars by hits | Goat `jump` (strong throw) | Placeholder |
-| **Farm – Basketball** | Hoops | Timed jump shot, 5 shots | Goat `jump` | Placeholder |
+| **School** | Supplies Sort | Drag pencils/books/notebooks into the right bags; quick riddle round | Daniah hints | **Playable** |
+| **Home – Living Room** | Tidy-Up | Return scattered toys/cushions; find the hidden remote | Sarah reach for high shelves | **Playable** |
+| **Home – Kitchen** | Kitchen Helpers | Follow a simple recipe (karak/dessert) by adding ingredients in order | — | **Playable** |
+| **Home – Backyard** | Treasure Hunt | Find hidden items; pet-the-cat bonus | Lamia animal bonus | **Playable** |
+| **Baqalah pit stop** | Snack Pack | 20 s grab-the-list-of-snacks into the trunk | Lamia +time | **Playable** |
+| **Farm – Pool** | Pool Splash | Side-view swim, collect rings, dodge floaties | Duck `swim_speed` | **Playable** |
+| **Farm – Ping Pong** | Rally | Keep a rally alive vs. a friendly AI; stars = rally length | Chicken `reflex` | **Playable** |
+| **Farm – Cornhole** | Toss | Aim + power bar, 5 bags, stars by hits | Goat `jump` (strong throw) | **Playable** |
+| **Farm – Basketball** | Hoops | Timed jump shot, 5 shots | Goat `jump` | **Playable** |
 
-"Placeholder" = a SPACE-mash meter so the whole loop is playable today; each is swapped by editing
-one line in `MiniGameRegistry`.
+All ten mini-games are now playable first versions (greybox art). `placeholder_minigame.gd` remains as a template for new ones.
 
 ### Farm (Al-Muzahimiyah) — mechanics shift
 At the gate the player **leaves the car** and picks an animal avatar (**Duck, Goat, Chicken**).
@@ -145,7 +144,8 @@ and the result exports to Windows/Mac/Linux and Web. Use **PyGame only if the go
 
 ## 11. Roadmap
 
-1. **M0 – Foundation (this commit):** menu, character/animal select, city + highway driving, router, save, 1 playable + 9 placeholder mini-games.
+1. **M0 – Foundation (done):** menu, character/animal select, city + highway driving, router, save.
+1. **M0.5 – Greybox mini-games (done):** all ten mini-games playable, headless smoke test in `tests/`.
 2. **M1 – Polish the loop:** engine/ambient audio, real car & character art, day-complete screen, stickers.
 3. **M2 – Mini-games #1:** School Sort, Baqalah Snack Pack, Living Room, Kitchen, Backyard.
 4. **M3 – Farm:** swim, ping pong, cornhole, basketball with animal perks; farm return drive.

@@ -15,47 +15,47 @@ const ENTRIES := {
 	"school_puzzle": {
 		"title": "School Supplies Sort",
 		"instructions": "Sort pencils, books and notebooks into the right bags before the bell rings.",
-		"script": PLACEHOLDER,
+		"script": "res://scripts/minigames/school_sort.gd",
 	},
 	"living_room": {
 		"title": "Living Room Tidy-Up",
 		"instructions": "Put the cushions and toys back where they belong.",
-		"script": PLACEHOLDER,
+		"script": "res://scripts/minigames/tidy_living_room.gd",
 	},
 	"kitchen": {
 		"title": "Kitchen Helpers",
 		"instructions": "Help cook: add the ingredients in the right order.",
-		"script": PLACEHOLDER,
+		"script": "res://scripts/minigames/kitchen_helpers.gd",
 	},
 	"backyard": {
 		"title": "Backyard Treasure Hunt",
 		"instructions": "Find the hidden items around the garden.",
-		"script": PLACEHOLDER,
+		"script": "res://scripts/minigames/backyard_hunt.gd",
 	},
 	"baqalah_snacks": {
 		"title": "Baqalah Snack Pack",
 		"instructions": "Quick! Grab the snacks on the list and pack the car for the road trip.",
-		"script": PLACEHOLDER,
+		"script": "res://scripts/minigames/snack_pack.gd",
 	},
 	"farm_swim": {
 		"title": "Pool Splash",
 		"instructions": "Swim across the farm pool, collecting rings. Ducks are fastest!",
-		"script": PLACEHOLDER,
+		"script": "res://scripts/minigames/pool_splash.gd",
 	},
 	"farm_pingpong": {
 		"title": "Farm Ping Pong",
 		"instructions": "Keep the rally going with your paddle.",
-		"script": PLACEHOLDER,
+		"script": "res://scripts/minigames/ping_pong.gd",
 	},
 	"farm_cornhole": {
 		"title": "Cornhole Toss",
 		"instructions": "Toss the bean bags into the hole. Goats throw farthest!",
-		"script": PLACEHOLDER,
+		"script": "res://scripts/minigames/cornhole_toss.gd",
 	},
 	"farm_basketball": {
 		"title": "Farm Basketball",
 		"instructions": "Time your jump and shoot hoops.",
-		"script": PLACEHOLDER,
+		"script": "res://scripts/minigames/basketball_shot.gd",
 	},
 }
 

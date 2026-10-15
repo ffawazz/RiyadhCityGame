@@ -11,5 +11,6 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 
 **Try it:** Play → pick a sister → drive to the supermarket circle (NW) → press E.
 
-Note: the code was written without access to a Godot editor in the authoring environment, so the first
-run may surface small typing/parse warnings to fix.
+**Test:** `godot --headless res://tests/smoke_test.tscn` loads every scene and plays every mini-game with simulated input (verified on Godot 4.3).
+
+All ten mini-games are playable greybox versions; art and audio are the next step.

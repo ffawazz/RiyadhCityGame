@@ -21,6 +21,7 @@ var _done: bool = false
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE # let clicks reach _unhandled_input
 	_panel_layer = CenterContainer.new()
 	_panel_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_panel_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -56,6 +57,47 @@ func complete(stars: int) -> void:
 	var s := clampi(stars, 0, 3)
 	_show_panel("Great job, %s!" % Game.character()["name"],
 			"You earned %d / 3 stars" % s, "Continue", func() -> void: _finish(s))
+
+
+## 3 / 2 / 1 / 0 stars from a score and three ascending thresholds.
+func stars_from(value: float, one: float, two: float, three: float) -> int:
+	if value >= three:
+		return 3
+	if value >= two:
+		return 2
+	if value >= one:
+		return 1
+	return 0
+
+
+## 1-9 for number keys (main row or keypad), otherwise -1.
+func digit_of(event: InputEvent) -> int:
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo:
+		return -1
+	if key.keycode >= KEY_1 and key.keycode <= KEY_9:
+		return key.keycode - KEY_0
+	if key.keycode >= KEY_KP_1 and key.keycode <= KEY_KP_9:
+		return key.keycode - KEY_KP_0
+	return -1
+
+
+## True for a left click or a tap of Space / Enter.
+func is_confirm(event: InputEvent) -> bool:
+	var mb := event as InputEventMouseButton
+	if mb != null:
+		return mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT
+	return event.is_action_pressed("ui_accept")
+
+
+func text(pos: Vector2, s: String, font_size: int = 24, color: Color = Color.WHITE) -> void:
+	draw_string(ThemeDB.fallback_font, pos, s, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+
+
+## Text centred horizontally on pos.x (pos.y is the baseline).
+func text_c(pos: Vector2, s: String, font_size: int = 24, color: Color = Color.WHITE) -> void:
+	var w := ThemeDB.fallback_font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	draw_string(ThemeDB.fallback_font, pos - Vector2(w * 0.5, 0), s, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 
 
 # --- internals ------------------------------------------------------------
