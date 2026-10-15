@@ -1,0 +1,53 @@
+extends Control
+## Title screen: Play / Continue / Quit over a simple Riyadh skyline.
+
+
+func _ready() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var col := UIKit.centered_column(self)
+	col.add_child(UIKit.label("Riyadh Kids Adventures", 60))
+	col.add_child(UIKit.label("مغامرات أطفال الرياض", 36, Color.html("ffd479")))
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 24
+	col.add_child(gap)
+	var play := UIKit.button("Play", _on_play)
+	col.add_child(play)
+	if Game.has_save():
+		col.add_child(UIKit.button("Continue", _on_continue))
+	col.add_child(UIKit.button("Quit", func() -> void: get_tree().quit()))
+	play.grab_focus()
+
+
+func _on_play() -> void:
+	Game.new_game()
+	Router.go("character_select")
+
+
+func _on_continue() -> void:
+	if Game.load_game():
+		Router.go("city")
+
+
+func _draw() -> void:
+	var w := size.x
+	var h := size.y
+	draw_rect(Rect2(0, 0, w, h), Color.html("f6b26b"))                 # desert-dusk sky
+	draw_rect(Rect2(0, 0, w, h * 0.45), Color.html("1c3b5a"))
+	draw_rect(Rect2(0, h * 0.45, w, h * 0.2), Color.html("e08e45"))
+	var ground := h * 0.82
+	draw_rect(Rect2(0, ground, w, h - ground), Color.html("d8c496"))
+	var skyline := Color.html("2b2d42")
+	# generic towers
+	for i in 14:
+		var tw := 50.0 + (i * 37 % 40)
+		var th := 80.0 + (i * 53 % 150)
+		draw_rect(Rect2(i * (w / 14.0) + 10.0, ground - th, tw, th), skyline)
+	# Kingdom Centre-style tower with the iconic opening
+	var kx := w * 0.72
+	draw_rect(Rect2(kx - 40, ground - 330, 24, 330), skyline)
+	draw_rect(Rect2(kx + 16, ground - 330, 24, 330), skyline)
+	draw_rect(Rect2(kx - 40, ground - 330, 80, 40), skyline)
+	# Faisaliyah-style globe tower
+	var fx := w * 0.28
+	draw_rect(Rect2(fx - 10, ground - 260, 20, 260), skyline)
+	draw_circle(Vector2(fx, ground - 280), 26.0, skyline)

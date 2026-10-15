@@ -1,0 +1,28 @@
+; Engine configuration file.
+; Open this folder with Godot 4.3+ (https://godotengine.org) and press F5.
+
+config_version=5
+
+[application]
+
+config/name="Riyadh Kids Adventures"
+config/description="A family-friendly driving + mini-game adventure through Riyadh."
+run/main_scene="res://scenes/main_menu.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[autoload]
+
+Game="*res://scripts/autoload/game_state.gd"
+Router="*res://scripts/autoload/scene_router.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
