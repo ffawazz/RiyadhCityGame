@@ -46,6 +46,9 @@ var _skid_toggle: bool = false
 var _parts: Dictionary = {}
 
 signal crashed(strength: float)
+signal drift_banked(points: int)
+var drift_time: float = 0.0
+var drift_points: float = 0.0
 const GRAVITY := 12.0
 
 ## Saudi number plate (letters HXD). The Arabic row uses the Saudi plate letter
@@ -155,6 +158,10 @@ func _physics_process(delta: float) -> void:
 	# rear tyre grip: handbrake locks the wheels, full throttle at low speed breaks the tail loose
 	var rear_grip := GRIP_REAR * (HANDBRAKE_GRIP if hand else 1.0)
 	rear_grip *= 1.0 - 0.3 * throttle * clampf(1.0 - speed_abs / 30.0, 0.0, 1.0)
+	if brake > 0.3 and u > 12.0 and absf(steer) > 0.25:
+		rear_grip *= 1.0 - 0.5 * brake                 # brake-slide: lift + brake into a corner
+	if throttle > 0.6 and absf(steer) > 0.55 and u > 8.0 and u < 38.0:
+		rear_grip *= 0.85                               # flat out with the wheel hard over: power slide
 	var top_speed := MAX_SPEED * perf
 	var heading_change := 0.0
 	var steps := 3
@@ -210,6 +217,7 @@ func _physics_process(delta: float) -> void:
 	if absf(forward_speed) < 0.08 and throttle == 0.0:
 		forward_speed = 0.0
 	_tyre_effects(delta, hand)
+	_track_drift(delta)
 	_update_engine(forward_speed)
 	_update_visuals(delta, throttle, brake)
 
@@ -248,6 +256,20 @@ func _check_crash(pre_velocity: Vector3) -> void:
 		damage.take_hit(local_n, worst)
 		yaw_rate += clampf(local_n.x * worst * -0.05, -1.2, 1.2)     # the car gets knocked round
 		crashed.emit(worst)
+
+
+## Drift score: slide sideways at speed for a while and you bank points.
+func _track_drift(delta: float) -> void:
+	var drifting := sliding and velocity.length() > 8.0 and not airborne and absf(lateral_speed) > 2.0
+	if drifting:
+		drift_time += delta
+		drift_points += absf(lateral_speed) * velocity.length() * 0.3 * delta * (1.0 + drift_time * 0.6)
+	elif drift_time > 0.0:
+		if drift_time > 0.8 and drift_points > 20.0:
+			Game.drift_total += int(drift_points)
+			drift_banked.emit(int(drift_points))
+		drift_time = 0.0
+		drift_points = 0.0
 
 
 func _tyre_effects(delta: float, hand: bool) -> void:

@@ -46,6 +46,7 @@ func _ready() -> void:
 	failures += await _traffic_and_bumps_test()
 	failures += await _farm_test()
 	failures += await _damage_persistence_test()
+	failures += await _camera_orbit_test()
 	print("FAILURES: ", failures)
 	get_tree().quit(failures)
 
@@ -204,6 +205,48 @@ func _damage_persistence_test() -> int:
 		fails += 1
 	if fails == 0:
 		print("ok damage: kept across scenes (30% health) and repaired")
+	city.queue_free()
+	await get_tree().process_frame
+	return fails
+
+
+## The camera can be moved around the car and eases back behind it.
+func _camera_orbit_test() -> int:
+	var fails := 0
+	Game.new_game()
+	Game.spawn_id = "home"
+	var city := (load("res://scenes/city.tscn") as PackedScene).instantiate()
+	add_child(city)
+	await get_tree().physics_frame
+	var cam: ChaseCamera = city.chase_cam
+	var car: Car = city.car
+	for i in 30:
+		await get_tree().process_frame
+	var right := car.global_transform.basis.x
+	var base := cam.global_position - car.global_position
+	cam.orbit_yaw = PI / 2.0
+	for i in 20:
+		await get_tree().process_frame
+	var moved := cam.global_position - car.global_position
+	if absf(moved.dot(right)) < 4.0:
+		printerr("FAIL: orbiting did not swing the camera to the side of the car (", moved, ")")
+		fails += 1
+	cam.orbit_zoom = 2.0
+	cam.orbit_pitch = 0.6
+	for i in 20:
+		await get_tree().process_frame
+	if (cam.global_position - car.global_position).length() < base.length() * 1.5:
+		printerr("FAIL: zoom out / look down did not move the camera away")
+		fails += 1
+	cam.locked = false
+	cam._idle = 99.0
+	for i in 400:
+		await get_tree().process_frame
+	if absf(cam.orbit_yaw) > 0.1 or absf(cam.orbit_zoom - 1.0) > 0.1:
+		printerr("FAIL: the camera did not ease back behind the car")
+		fails += 1
+	if fails == 0:
+		print("ok camera: orbits to the side, zooms, and eases back behind the car")
 	city.queue_free()
 	await get_tree().process_frame
 	return fails

@@ -67,6 +67,45 @@ func _ready() -> void:
 		printerr("FAIL: the car loses all its speed in a handbrake turn")
 		fails += 1
 
+	# 2c) brake-slide: lift, brake and turn into a corner (no handbrake) also kicks the tail out
+	car.rotation.y = 0.0
+	car.velocity = Vector3(0, 0, -28)
+	car.yaw_rate = 0.0
+	await _drive(15, {"accelerate": true})
+	var slip_b := 0.0
+	for i in 40:
+		Input.action_press("brake")
+		Input.action_press("steer_right")
+		await get_tree().physics_frame
+		slip_b = maxf(slip_b, absf(car.body_slip))
+	Input.action_release("brake")
+	Input.action_release("steer_right")
+	print("2c) brake + steer at 100 km/h: max body slip %.0f deg" % rad_to_deg(slip_b))
+	if rad_to_deg(slip_b) < 8.0:
+		printerr("FAIL: braking into a corner should break the tail loose")
+		fails += 1
+
+	# 2d) a long handbrake drift banks drift points
+	car.rotation.y = 0.0
+	car.velocity = Vector3(0, 0, -30)
+	car.yaw_rate = 0.0
+	Game.drift_total = 0
+	await _drive(10, {"accelerate": true})
+	var peak_points := 0.0
+	for i in 70:
+		Input.action_press("steer_left")
+		Input.action_press("handbrake")
+		Input.action_press("accelerate")
+		await get_tree().physics_frame
+		peak_points = maxf(peak_points, car.drift_points)
+	Input.action_release("handbrake")
+	Input.action_release("steer_left")
+	await _drive(60, {"accelerate": true})
+	print("2d) handbrake drift: %.0f points while sliding, banked total %d" % [peak_points, Game.drift_total])
+	if peak_points < 50.0:
+		printerr("FAIL: drifting did not score")
+		fails += 1
+
 	# 3) fast corner without handbrake must not spin the car
 	car.rotation.y = 0.0
 	car.velocity = Vector3(0, 0, -25)

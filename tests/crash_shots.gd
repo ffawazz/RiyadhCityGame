@@ -53,6 +53,15 @@ func _ready() -> void:
 		cam.global_position = car.global_position + car.global_transform.basis * views[name]
 		cam.look_at(car.global_position + Vector3(0, 1.0, 0))
 		await _shot(name)
+	# orbit views with the real chase camera
+	city.chase_cam.make_current()
+	city.chase_cam.locked = true
+	for v in [["07_orbit_side", PI * 0.5, 0.2, 1.0], ["08_orbit_front_high", PI * 0.85, 0.7, 1.4], ["09_orbit_back_close", 0.0, 0.1, 0.55]]:
+		city.chase_cam.orbit_yaw = v[1]
+		city.chase_cam.orbit_pitch = v[2]
+		city.chase_cam.orbit_zoom = v[3]
+		await _frames(20)
+		await _shot(v[0])
 	get_tree().quit()
 
 func _frames(n: int) -> void:

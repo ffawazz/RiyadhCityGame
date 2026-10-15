@@ -16,6 +16,11 @@ func _ready() -> void:
 		col.add_child(UIKit.button("Continue", _on_continue))
 	col.add_child(UIKit.button("Quit", func() -> void: get_tree().quit()))
 	play.grab_focus()
+	var build := UIKit.label("Build %s" % Game.BUILD_ID, 16, Color(1, 1, 1, 0.7))
+	build.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 12)
+	build.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	build.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	add_child(build)
 
 
 func _on_play() -> void:

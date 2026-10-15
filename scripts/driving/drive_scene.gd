@@ -37,6 +37,8 @@ var _goals_label: Label
 var _prompt_label: Label
 var _speed_label: Label
 var _health_label: Label
+var _drift_label: Label
+var _build_label: Label
 var _toast_label: Label
 var _toast_t: float = 0.0
 
@@ -175,6 +177,11 @@ func _process(_delta: float) -> void:
 				Router.enter_location(_active_zone.location_id)
 	else:
 		_prompt_label.text = ""
+	if car.drift_time > 0.35:
+		_drift_label.visible = true
+		_drift_label.text = "DRIFT!  %d" % int(car.drift_points)
+	else:
+		_drift_label.visible = false
 	var health := car.damage.health()
 	_health_label.text = "Car: %d%%" % int(health)
 	_health_label.add_theme_color_override("font_color", Color.html("80ed99") if health > 60.0 else (Color.html("ffd166") if health > 30.0 else Color.html("ff5d5d")))
@@ -446,6 +453,7 @@ func _spawn_car() -> void:
 		if child is Traffic:
 			(child as Traffic).player = car
 	car.crashed.connect(_on_crash)
+	car.drift_banked.connect(func(points: int) -> void: _toast("Nice drift!  +%d   (total %d)" % [points, Game.drift_total]))
 	chase_cam = ChaseCamera.new()
 	chase_cam.target = car
 	add_child(chase_cam)
@@ -478,6 +486,18 @@ func _build_hud() -> void:
 	_health_label.position.y -= 150.0
 	_health_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 
+	_drift_label = _hud_label(hud, 44)
+	_drift_label.add_theme_color_override("font_color", Color.html("ffd166"))
+	_drift_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 170)
+	_drift_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_drift_label.visible = false
+
+	_build_label = _hud_label(hud, 14)
+	_build_label.text = "build " + Game.BUILD_ID
+	_build_label.modulate = Color(1, 1, 1, 0.6)
+	_build_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 2)
+	_build_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+
 	_toast_label = _hud_label(hud, 34)
 	_toast_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 110)
 	_toast_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
@@ -489,7 +509,7 @@ func _build_hud() -> void:
 	_prompt_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 	var help := _hud_label(hud, 16)
-	help.text = "W/S gas & brake   A/D steer   SPACE handbrake   C camera   E enter   Esc menu"
+	help.text = "W/S gas & brake  A/D steer  SPACE handbrake = drift!  E enter  Esc menu\nCamera: C view  |  hold right mouse + drag, or J L I K  = orbit  |  wheel or U O = zoom  |  hold B = look back  |  V = lock view"
 	help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
 	help.grow_vertical = Control.GROW_DIRECTION_BEGIN
 

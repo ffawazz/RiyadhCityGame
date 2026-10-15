@@ -4,6 +4,9 @@ extends Node
 
 signal character_changed(id: String)
 
+## Shown in the main menu and the driving HUD so you can tell which version you are running.
+const BUILD_ID := "b7 - drift, crash damage, orbit camera"
+
 const SAVE_PATH := "user://riyadh_kids_save.cfg"
 
 ## The three playable sisters. "mods" are tiny gameplay perks that any
@@ -127,6 +130,7 @@ const DAILY_GOALS := [
 var character_id: String = "daniah"
 var animal_id: String = "duck"
 var completed: Dictionary = {}       # minigame_id -> best stars (0-3)
+var drift_total: int = 0            # drift points banked this session
 var car_damage: float = 0.0          # 0 = perfect, 100 = wrecked
 var car_hits: Array = []             # recent crashes, replayed to rebuild the dents
 var custom_music: Dictionary = {}    # character id -> path of the song file the player chose
