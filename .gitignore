@@ -3,3 +3,6 @@
 export_presets.cfg
 .mono/
 game.log
+build/
+*.apk
+*.keystore

@@ -54,7 +54,7 @@ const ENTRIES := {
 	},
 	"farm_archery": {
 		"title": "Bottle Archery",
-		"instructions": "Knock the sand, water, Pepsi and Cola bottles off the shelf! The WIND pushes your shot - watch the flag and aim into it.\nMove the mouse to aim, click or SPACE to shoot, TAB switches between the bow and the air rifle.",
+		"instructions": "Knock the sand, water, Pepsi and Cola bottles off the shelf! The WIND pushes your shot - watch the flag and aim into it.\nAim with the mouse (or drag your finger), click / tap or press SPACE to shoot, TAB (SWAP button) switches between the bow and the air rifle.",
 		"script": "res://scripts/minigames/archery_range.gd",
 	},
 	"farm_swing": {

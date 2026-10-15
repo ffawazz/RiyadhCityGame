@@ -17,6 +17,8 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 
 **Farm games (7 + pool/ping-pong/basketball/cornhole):** the farm now has a **map** (top-right, press **M** for the big map), **families strolling around**, and these games - **Bottle Archery** (bow or air rifle at sand / water / Pepsi / Cola bottles, the wind pushes your shot, TAB switches weapon), **Swing Set** (pump with SPACE, jump with W), **Motorbike Track** (D gas, A brake, W/S tilt in the air), a **Pool** where your sister swims the crawl, **Basketball** where she takes the shots, and a **Cornhole match vs Dad** in perspective.
 
+**Android:** the game has on-screen touch controls (a joystick or steer/GAS/BRAKE/DRIFT buttons, tap-to-click menus, finger-drag to aim and to orbit the camera) that appear automatically on a phone/tablet - and on a PC when you start it with `--touch`. A debug **APK** is built by GitHub on every push: open the repo's **Actions** tab -> latest "Android APK" run -> download `RiyadhKids-android-apk`, copy `RiyadhKids-debug.apk` to the phone and open it (allow "install unknown apps"). To build it yourself: `.\build_android.ps1 -Godot <path to Godot 4.3 exe>` (needs the export templates, Android Studio's SDK and JDK 17). Landscape only; best on a recent phone (arm64).
+
 **Run it the safe way (Windows):** `.\run_game.ps1` imports new scripts first, starts the game and writes any errors to `game.log` - send me that file if something breaks.
 
 **Try it:** Play → pick a sister → drive to the supermarket circle (NW) → press E.

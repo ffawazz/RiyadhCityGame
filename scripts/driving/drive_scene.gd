@@ -230,7 +230,7 @@ func _build_environment() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-52.0, -35.0, 0.0)
 	sun.light_energy = 0.55
-	sun.shadow_enabled = true
+	sun.shadow_enabled = not TouchPad.enabled   # phones: no shadows, keeps the frame rate up
 	sun.directional_shadow_max_distance = 150.0
 	add_child(sun)
 
@@ -509,7 +509,10 @@ func _build_hud() -> void:
 	_prompt_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 	var help := _hud_label(hud, 16)
-	help.text = "W/S gas & brake  A/D steer  SPACE handbrake = drift!  E enter  Esc menu\nCamera: C view  |  hold right mouse + drag, or J L I K  = orbit  |  wheel or U O = zoom  |  hold B = look back  |  V = lock view"
+	if TouchPad.enabled:
+		help.text = "Touch: < > steer   GAS / BRAKE   DRIFT = handbrake   E = enter a place   CAM = change view   ESC = menu"
+	else:
+		help.text = "W/S gas & brake  A/D steer  SPACE handbrake = drift!  E enter  Esc menu\nCamera: C view  |  hold right mouse + drag, or J L I K  = orbit  |  wheel or U O = zoom  |  hold B = look back  |  V = lock view"
 	help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
 	help.grow_vertical = Control.GROW_DIRECTION_BEGIN
 

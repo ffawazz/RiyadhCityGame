@@ -93,7 +93,7 @@ func _build_environment() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-55.0, -30.0, 0.0)
 	sun.light_energy = 0.5
-	sun.shadow_enabled = true
+	sun.shadow_enabled = not TouchPad.enabled   # phones: no shadows, keeps the frame rate up
 	sun.directional_shadow_max_distance = 120.0
 	add_child(sun)
 
@@ -431,7 +431,7 @@ func _build_hud() -> void:
 	info.text = "%s is %s the %s  -  Al-Muzahimiyah Farm" % [Game.character()["name"], Game.animal()["name"], Game.animal()["species"]]
 	info.position = Vector2(16, 10)
 	var help := _label(hud, 18)
-	help.text = "WASD walk   SPACE jump   E play   M big map   Walk into a glowing circle to play a game!   Esc menu"
+	help.text = "Joystick walk   JUMP   E play   MAP big map   Walk into a glowing circle to play a game!" if TouchPad.enabled else "WASD walk   SPACE jump   E play   M big map   Walk into a glowing circle to play a game!   Esc menu"
 	help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
 	help.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_map = FarmMap.new()

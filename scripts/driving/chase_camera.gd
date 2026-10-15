@@ -52,7 +52,7 @@ func add_shake(amount: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	var motion := event as InputEventMouseMotion
-	if motion != null and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+	if motion != null and (Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) or (TouchPad.enabled and (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0)):   # finger drag orbits on phones
 		orbit_yaw -= motion.relative.x * 0.006
 		orbit_pitch = clampf(orbit_pitch + motion.relative.y * 0.006, -0.7, 1.1)
 		_idle = 0.0
