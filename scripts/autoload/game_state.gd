@@ -35,17 +35,17 @@ const CHARACTERS := {
 ## Farm avatars (chosen once we arrive at Al-Muzahimiyah).
 const ANIMALS := {
 	"duck": {
-		"name": "Duck", "name_ar": "بطة",
+		"name": "Shatoor", "name_ar": "شاطور", "species": "Duck",
 		"blurb": "Born to swim! Fastest in the pool.",
 		"mods": {"swim_speed": 1.3},
 	},
 	"goat": {
-		"name": "Goat", "name_ar": "ماعز",
+		"name": "Hassan", "name_ar": "حسن", "species": "Goat",
 		"blurb": "Strong legs! Best at Cornhole tosses and Basketball jumps.",
 		"mods": {"jump": 1.3},
 	},
 	"chicken": {
-		"name": "Chicken", "name_ar": "دجاجة",
+		"name": "Chicken", "name_ar": "دجاجة", "species": "Chicken",
 		"blurb": "Quick reflexes! Great at Ping Pong.",
 		"mods": {"reflex": 1.3},
 	},
@@ -123,6 +123,7 @@ const DAILY_GOALS := [
 var character_id: String = "daniah"
 var animal_id: String = "duck"
 var completed: Dictionary = {}       # minigame_id -> best stars (0-3)
+var custom_music: Dictionary = {}    # character id -> path of the song file the player chose
 var pending_minigame: String = ""    # set by Router before loading the host scene
 var minigame_return: String = "city" # Router scene key to go back to
 var spawn_id: String = "home"        # where the car appears when a driving scene loads
@@ -131,6 +132,7 @@ var spawn_id: String = "home"        # where the car appears when a driving scen
 func _ready() -> void:
 	_register_inputs()
 	_install_arabic_font()
+	load_settings()
 
 
 # --- Characters ---------------------------------------------------------
@@ -194,6 +196,21 @@ func daily_lines() -> Array[String]:
 
 
 # --- Save / load --------------------------------------------------------
+
+const SETTINGS_PATH := "user://riyadh_kids_settings.cfg"
+
+
+func save_settings() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("music", "custom_music", custom_music)
+	cfg.save(SETTINGS_PATH)
+
+
+func load_settings() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(SETTINGS_PATH) == OK:
+		custom_music = cfg.get_value("music", "custom_music", {})
+
 
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)

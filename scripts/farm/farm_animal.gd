@@ -16,6 +16,7 @@ var _mats: Dictionary = {}
 
 
 func setup(animal_id: String) -> void:
+	add_to_group("player")
 	kind = animal_id
 	match kind:
 		"goat":

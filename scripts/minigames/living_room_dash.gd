@@ -1,4 +1,6 @@
 extends MiniGameBase
+
+const _Art := preload("res://scripts/ui/avatar_art.gd")
 ## Living Room Dash: run around the messy room, grab toys (carry up to 3) and dump them in
 ## the toy box before Mama gets home. Beware the robot vacuum (stuns you and drops your toys)
 ## and the cheeky cat (steals a toy and knocks new ones off the shelf).
@@ -261,7 +263,7 @@ func _draw_game() -> void:
 	draw_line(_cat_pos + Vector2(-14, 4), _cat_pos + Vector2(-30, -8 + sin(_time_left * 8.0) * 5.0), Color.html("ff9f1c"), 4.0)
 	# the sister
 	var bob := absf(sin(_walk_t)) * 4.0 if _stun <= 0.0 else 0.0
-	AvatarArt.draw_sister(self, Game.character_id, _p + Vector2(0, 26), 0.42, _face, bob, sin(_walk_t * 0.5) * 0.05 + (0.3 if _stun > 0.0 else 0.0))
+	_Art.draw_sister(self, Game.character_id, _p + Vector2(0, 26), 0.42, _face, bob, sin(_walk_t * 0.5) * 0.05 + (0.3 if _stun > 0.0 else 0.0))
 	for i in _carry.size():
 		_draw_toy(_p + Vector2(-20 + i * 20, -104 - 4 * i), _carry[i]["kind"], _carry[i]["color"], 0.75)
 	for sp: Dictionary in _sparks:

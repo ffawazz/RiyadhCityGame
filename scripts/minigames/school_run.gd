@@ -1,4 +1,6 @@
 extends MiniGameBase
+
+const _Art := preload("res://scripts/ui/avatar_art.gd")
 ## Run to Class! The bell is about to ring. Sprint down the school hallway, jump (W / Up /
 ## Space - tap again for a double jump, hold for height) over backpacks, chairs, wet-floor
 ## signs and puddles, and grab pencils (+1) and books (+3). Daniah floats a little, Sarah
@@ -184,7 +186,7 @@ func _draw_game() -> void:
 	var blink := _hit_cd > 0.0 and int(_hit_cd * 12.0) % 2 == 0
 	if not blink:
 		var bob := absf(sin(_run_t)) * 5.0 if _py <= 0.0 else 0.0
-		AvatarArt.draw_sister(self, Game.character_id, Vector2(PLAYER_X, _ground + 8.0), 0.5, 1.0, _py + bob, 0.12 + sin(_run_t) * 0.05)
+		_Art.draw_sister(self, Game.character_id, Vector2(PLAYER_X, _ground + 8.0), 0.5, 1.0, _py + bob, 0.12 + sin(_run_t) * 0.05)
 	# finish: the classroom door slides in at the end
 	if _time_left < 4.0:
 		var dx := size.x - (4.0 - _time_left) / 4.0 * 360.0

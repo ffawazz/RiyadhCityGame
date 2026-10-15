@@ -72,7 +72,7 @@ func _draw_game() -> void:
 		draw_line(Vector2(0, 130.0 + (size.y - 170.0) * l / LANES), Vector2(size.x, 130.0 + (size.y - 170.0) * l / LANES),
 				Color(1, 1, 1, 0.35), 3.0)
 	text(Vector2(24, 40), "Time %d    Rings %d" % [maxi(0, ceili(_time_left)), _rings], 28, Color.html("023e8a"))
-	text(Vector2(24, 80), "Swimming as the %s - W/S to change lane" % Game.animal()["name"], 22, Color.html("023e8a"))
+	text(Vector2(24, 80), "Swimming as %s the %s - W/S to change lane" % [Game.animal()["name"], Game.animal()["species"]], 22, Color.html("023e8a"))
 	for o: Dictionary in _objs:
 		var p := Vector2(float(o["x"]), _lane_y(int(o["lane"])) + sin(_bob * 4.0 + float(o["x"]) * 0.02) * 4.0)
 		if o["ring"]:

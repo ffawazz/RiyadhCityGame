@@ -50,6 +50,7 @@ var _dad_head: Node3D
 
 
 func _init() -> void:
+	add_to_group("player")
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	var shape := BoxShape3D.new()
 	shape.size = Vector3(1.9, 1.3, 4.9)

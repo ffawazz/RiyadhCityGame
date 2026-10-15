@@ -85,7 +85,7 @@ Every mini-game extends `MiniGameBase`: intro → play → results (0–3 stars)
 All ten mini-games are playable (greybox art). Version 4 rebuilt the four boring ones (School, Baqalah, Living Room, Kitchen) as action games. `placeholder_minigame.gd` remains as a template for new ones.
 
 ### Farm (Al-Muzahimiyah) - walk to the game
-At the gate you pick an animal (**Duck, Goat, Chicken**), then the game becomes a **3D walking game**: you are the animal, walking (WASD, SPACE to jump) around a walled Najdi-style farm with palm groves, alfalfa fields, camels and hay bales. Each activity has its own spot with a glowing circle: the **swimming pool**, the **ping-pong table**, the **cornhole boards** and the **basketball hoop**. Step into a circle and press **E** to play. The **barn** lets you change animal and the parked family CX-9 at the gate drives you home. The animal's perks (duck swims faster, goat throws/jumps higher, chicken has quick reflexes) apply in the mini-games.
+At the gate you pick an animal (**Shatoor the Duck, Hassan the Goat, Chicken**), then the game becomes a **3D walking game**: you are the animal, walking (WASD, SPACE to jump) around a walled Najdi-style farm with palm groves, alfalfa fields, camels and hay bales. Each activity has its own spot with a glowing circle: the **swimming pool**, the **ping-pong table**, the **cornhole boards** and the **basketball hoop**. Step into a circle and press **E** to play. The **barn** lets you change animal and the parked family CX-9 at the gate drives you home. The animal's perks (duck swims faster, goat throws/jumps higher, chicken has quick reflexes) apply in the mini-games.
 
 ## 6. Progression & rewards
 

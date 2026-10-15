@@ -16,6 +16,7 @@ var _player: AudioStreamPlayer
 var _cache: Dictionary = {}       # style -> AudioStreamWAV
 var _jobs: Dictionary = {}        # style -> MusicSynth (partially rendered)
 var _custom: Dictionary = {}       # character id -> user-supplied AudioStream
+var _custom_path: Dictionary = {}  # character id -> the file it came from
 var _wanted: String = ""
 var _pause: float = START_DELAY
 
@@ -26,33 +27,71 @@ func _ready() -> void:
 	add_child(_player)
 
 
-## Your own song: drop <name>.mp3 or .ogg (daniah / sarah / lamia) into the game's `music`
-## folder and that sister plays it instead of the built-in track.
+## Your own song for a sister. Looked up in this order:
+##   1. the file she was given with "Choose song..." on the character screen
+##   2. music/<name>.mp3|ogg next to the game (or user://music), also any file in that folder
+##      whose name contains her name (lamia, sarah, daniah) - or "mukassarat" / "مكسرات" for Lamia
 func custom_stream(character_id: String) -> AudioStream:
 	if _custom.has(character_id):
 		return _custom[character_id]
+	var candidates: Array = []
+	var chosen: String = Game.custom_music.get(character_id, "")
+	if chosen != "" and FileAccess.file_exists(chosen):
+		candidates.append(chosen)
 	var dirs: Array = MUSIC_DIRS.duplicate()
 	dirs.append(OS.get_executable_path().get_base_dir().path_join("music"))
 	for dir: String in dirs:
 		for ext: String in MUSIC_EXTS:
-			var path := "%s/%s.%s" % [dir, character_id, ext]
-			if not FileAccess.file_exists(path):
-				continue
-			var bytes := FileAccess.get_file_as_bytes(path)
-			var stream: AudioStream = null
-			if ext == "mp3":
-				var mp3 := AudioStreamMP3.new()
-				mp3.data = bytes
-				mp3.loop = true
-				stream = mp3
-			else:
-				var ogg := AudioStreamOggVorbis.load_from_buffer(bytes)
-				if ogg != null:
-					ogg.loop = true
-				stream = ogg
-			if stream != null:
-				_custom[character_id] = stream
-				return stream
+			candidates.append("%s/%s.%s" % [dir, character_id, ext])
+		var da := DirAccess.open(dir)
+		if da != null:
+			for f in da.get_files():
+				var low := f.to_lower()
+				var ext2 := low.get_extension()
+				if not MUSIC_EXTS.has(ext2):
+					continue
+				if low.contains(character_id) or (character_id == "lamia" and (low.contains("mukassarat") or low.contains("mkassarat") or f.contains("مكسرات"))):
+					candidates.append("%s/%s" % [dir, f])
+	for path: String in candidates:
+		var stream := _load_audio(path)
+		if stream != null:
+			_custom[character_id] = stream
+			_custom_path[character_id] = path
+			return stream
+	return null
+
+
+func custom_path(character_id: String) -> String:
+	custom_stream(character_id)
+	return _custom_path.get(character_id, "")
+
+
+## Called after the player picks a file.
+func set_custom_song(character_id: String, path: String) -> bool:
+	_custom.erase(character_id)
+	_custom_path.erase(character_id)
+	Game.custom_music[character_id] = path
+	Game.save_settings()
+	return custom_stream(character_id) != null
+
+
+func _load_audio(path: String) -> AudioStream:
+	if not FileAccess.file_exists(path):
+		return null
+	var bytes := FileAccess.get_file_as_bytes(path)
+	if bytes.is_empty():
+		return null
+	match path.get_extension().to_lower():
+		"mp3":
+			var mp3 := AudioStreamMP3.new()
+			mp3.data = bytes
+			mp3.loop = true
+			return mp3
+		"ogg":
+			var ogg := AudioStreamOggVorbis.load_from_buffer(bytes)
+			if ogg != null:
+				ogg.loop = true
+			return ogg
 	return null
 
 

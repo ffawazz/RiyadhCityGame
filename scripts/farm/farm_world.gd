@@ -320,7 +320,7 @@ func _build_hud() -> void:
 	var hud := CanvasLayer.new()
 	add_child(hud)
 	var info := _label(hud, 26)
-	info.text = "%s the %s  -  Al-Muzahimiyah Farm" % [Game.character()["name"], Game.animal()["name"]]
+	info.text = "%s is %s the %s  -  Al-Muzahimiyah Farm" % [Game.character()["name"], Game.animal()["name"], Game.animal()["species"]]
 	info.position = Vector2(16, 10)
 	var help := _label(hud, 18)
 	help.text = "WASD walk   SPACE jump   E play   Walk into a glowing circle to play a game!   Esc menu"

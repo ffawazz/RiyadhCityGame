@@ -82,10 +82,10 @@ func _ready() -> void:
 	add_child(lbl)
 
 	body_entered.connect(func(body: Node3D) -> void:
-		if body is Car:
+		if body.is_in_group("player"):
 			car_entered.emit(self))
 	body_exited.connect(func(body: Node3D) -> void:
-		if body is Car:
+		if body.is_in_group("player"):
 			car_exited.emit(self))
 
 

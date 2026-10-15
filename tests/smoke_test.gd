@@ -167,6 +167,19 @@ func _farm_test() -> int:
 			fails += 1
 		else:
 			print("ok farm: the ", animal, " walked ", snappedf(farm.animal.position.distance_to(start), 0.1), " m")
+		# walking into a glowing circle must offer the game (this was broken: zones only saw cars)
+		for station in FarmWorld.STATIONS:
+			var pos: Vector2 = FarmWorld.STATIONS[station]
+			farm.animal.position = Vector3(pos.x, 0.3, pos.y)
+			farm.animal.velocity = Vector3.ZERO
+			for i in 6:
+				await get_tree().physics_frame
+			var zone: LocationZone = farm._active_zone
+			if zone == null or zone.location_id != station:
+				printerr("FAIL: standing at '", station, "' the animal did not enter its zone (active: ", zone.location_id if zone else "none", ")")
+				fails += 1
+		if fails == 0:
+			print("ok farm zones: the ", animal, " can enter all ", FarmWorld.STATIONS.size(), " activity circles")
 		farm.queue_free()
 		await get_tree().process_frame
 	return fails

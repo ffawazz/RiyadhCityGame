@@ -9,9 +9,11 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 
 **Controls:** W/S gas & brake (hold S to reverse), A/D steer, **SPACE handbrake (drift!)**, **C** camera (chase / far / hood), **E** enter a light-beam location (slow down first), Esc back to menu/skip. Gamepad supported.
 
-**Soundtrack:** Daniah = American rock, Sarah = Korean pop, Lamia = Arabic (maqam Hijaz). Generated in code. To play **your own song** for a sister, put `lamia.mp3` / `sarah.mp3` / `daniah.mp3` (or `.ogg`) in the `music` folder (see `music/README.txt`).
+**Soundtrack:** Daniah = American rock, Sarah = Korean pop, Lamia = Arabic (maqam Hijaz). Generated in code. To play **your own song** for a sister: on the character screen press **Choose song...** under her name and pick an mp3/ogg (the choice is remembered), or put `lamia.mp3` etc. in the `music` folder.
 
-**Farm:** pick an animal, then walk (WASD, SPACE jump) into the glowing circles to play. E enters.
+**Farm:** pick an animal - **Shatoor the duck**, **Hassan the goat** or the chicken - then walk (WASD, SPACE jump) into the glowing circles to play. E enters.
+
+**Run it the safe way (Windows):** `.\run_game.ps1` imports new scripts first, starts the game and writes any errors to `game.log` - send me that file if something breaks.
 
 **Try it:** Play → pick a sister → drive to the supermarket circle (NW) → press E.
 

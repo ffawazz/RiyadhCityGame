@@ -1,4 +1,6 @@
 extends MiniGameBase
+
+const _Art := preload("res://scripts/ui/avatar_art.gd")
 ## Kitchen Rush (Overcooked-style): family orders sandwiches! Walk with WASD, use E / Space.
 ## Grab ingredients from the crates, chop the tomato, fry the egg, build the plate - the order
 ## is served automatically when your plate matches. Don't burn the egg!
@@ -238,7 +240,7 @@ func _draw_game() -> void:
 				draw_rect(r, Color.html("6c757d"))
 				text_c(r.get_center() + Vector2(0, 6), "TRASH", 18, Color.WHITE)
 	var bob := absf(sin(_walk_t)) * 4.0
-	AvatarArt.draw_sister(self, Game.character_id, _p + Vector2(0, 26), 0.42, _face, bob, sin(_walk_t * 0.5) * 0.05)
+	_Art.draw_sister(self, Game.character_id, _p + Vector2(0, 26), 0.42, _face, bob, sin(_walk_t * 0.5) * 0.05)
 	if _held != "":
 		_draw_item(_held, _p + Vector2(_face * 28.0, -58.0), 1.2)
 	# hud: orders

@@ -1,4 +1,6 @@
 extends MiniGameBase
+
+const _Art := preload("res://scripts/ui/avatar_art.gd")
 ## Baqalah Snack Run (Frogger-style): Dad is waiting in the car! Dash across the busy
 ## forecourt to the shop, grab the snack on the list, then dash back to the car before a
 ## car hits you. Each safe delivery = 1 trip. Sarah has long legs (faster), Daniah gets
@@ -143,7 +145,7 @@ func _draw_game() -> void:
 	# the sister
 	var flash := _stun > 0.0 and int(_stun * 12.0) % 2 == 0
 	if not flash:
-		AvatarArt.draw_sister(self, Game.character_id, _p + Vector2(0, 4), 0.42, _face, absf(sin(_walk_t)) * 4.0, sin(_walk_t * 0.5) * 0.05)
+		_Art.draw_sister(self, Game.character_id, _p + Vector2(0, 4), 0.42, _face, absf(sin(_walk_t)) * 4.0, sin(_walk_t * 0.5) * 0.05)
 		if _carrying:
 			draw_rect(Rect2(_p.x - 12, _p.y - 112, 24, 24), Color.html("ffd166"))
 			draw_rect(Rect2(_p.x - 12, _p.y - 112, 24, 24), Color.html("c77d00"), false, 2.0)
