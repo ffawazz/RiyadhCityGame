@@ -1,33 +1,32 @@
 extends Node
 ## Autoload "Music": plays the soundtrack of the sister you picked.
 ##   Daniah -> American rock,  Sarah -> Korean pop,  Lamia -> Arabic (maqam Hijaz)
-## Tracks are synthesised on a worker thread the first time they're needed, then cached.
+## Tracks are synthesised on the main thread, one bar per slice, starting a moment after
+## launch (title screen is idle), then cached. The chosen style is rendered first.
 
 const STYLES := {"daniah": "american", "sarah": "korean", "lamia": "arabic"}
+const START_DELAY := 0.8      # let the first scene finish loading before the heavy work
+const SLICE_PAUSE := 0.08     # breathing room between bars while nobody is waiting
 
 var current_style: String = ""
 
 var _player: AudioStreamPlayer
 var _cache: Dictionary = {}       # style -> AudioStreamWAV
-var _task_id: int = -1
-var _task_style: String = ""
-var _task_result: PackedByteArray
+var _jobs: Dictionary = {}        # style -> MusicSynth (partially rendered)
 var _wanted: String = ""
+var _pause: float = START_DELAY
 
 
 func _ready() -> void:
 	_player = AudioStreamPlayer.new()
 	_player.volume_db = -9.0
 	add_child(_player)
-	_next_job() # warm all three tracks in the background so music starts instantly
 
 
 func play_for(character_id: String) -> void:
 	_wanted = STYLES.get(character_id, "american")
 	if _cache.has(_wanted):
 		_start(_wanted)
-	elif _task_id == -1:
-		_next_job()
 
 
 func stop() -> void:
@@ -36,37 +35,34 @@ func stop() -> void:
 	_player.stop()
 
 
-func _begin_render(style: String) -> void:
-	_task_style = style
-	_task_id = WorkerThreadPool.add_task(_render_job.bind(style))
-
-
-func _render_job(style: String) -> void:
-	_task_result = MusicSynth.render_bytes(style)
-
-
-func _process(_delta: float) -> void:
-	if _task_id == -1 or not WorkerThreadPool.is_task_completed(_task_id):
+func _process(delta: float) -> void:
+	var waiting := _wanted != "" and not _cache.has(_wanted)
+	_pause -= delta
+	if _pause > 0.0 and not waiting:
 		return
-	WorkerThreadPool.wait_for_task_completion(_task_id)
-	_task_id = -1
-	_cache[_task_style] = MusicSynth.make_stream(_task_result)
-	if _wanted == _task_style:
-		_start(_task_style)
-	_next_job()
-
-
-## Render the wanted style first, then any style that is still missing.
-func _next_job() -> void:
-	if _task_id != -1:
+	var style := _next_style()
+	if style == "":
 		return
+	if not _jobs.has(style):
+		_jobs[style] = MusicSynth.new(style)
+	var job: MusicSynth = _jobs[style]
+	var done := job.render_next_bar()
+	_pause = 0.0 if waiting else SLICE_PAUSE
+	if done:
+		_cache[style] = MusicSynth.make_stream(job.result())
+		_jobs.erase(style)
+		if _wanted == style:
+			_start(style)
+
+
+## The wanted style first, then any style still missing.
+func _next_style() -> String:
 	if _wanted != "" and not _cache.has(_wanted):
-		_begin_render(_wanted)
-		return
+		return _wanted
 	for style: String in STYLES.values():
 		if not _cache.has(style):
-			_begin_render(style)
-			return
+			return style
+	return ""
 
 
 func _start(style: String) -> void:

@@ -2,36 +2,12 @@ class_name DriveScene
 extends Node3D
 ## Base class for every scene where the player drives the car (3D, metres).
 ## Subclasses describe the map in _configure(); this class builds the world
-## (ground, roads, building lots, palms), the car + chase camera, the HUD and
-## the "press E to enter" logic. Map coordinates are Vector2(x, z) in metres.
+## (ground, roads, lane markings, sidewalks, building lots, palms, lamps), the car +
+## chase camera, the HUD and the "press E to enter" logic.
+## Map coordinates are Vector2(x, z) in metres. Architecture comes from RiyadhBuilder.
 
-const BUILDING_SHADER := """
-shader_type spatial;
-uniform vec4 base_color : source_color = vec4(0.8, 0.7, 0.5, 1.0);
-uniform vec4 glass_color : source_color = vec4(0.25, 0.4, 0.55, 1.0);
-uniform float windows = 1.0;
-varying vec3 wpos;
-varying vec3 wnrm;
-void vertex() {
-	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	wnrm = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
-}
-void fragment() {
-	vec3 col = base_color.rgb;
-	if (windows > 0.5 && abs(wnrm.y) < 0.5 && wpos.y > 2.0) {
-		float along = (abs(wnrm.x) > 0.5) ? wpos.z : wpos.x;
-		vec2 cell = vec2(fract(along / 4.5), fract(wpos.y / 3.6));
-		float w = step(0.2, cell.x) * step(cell.x, 0.8) * step(0.25, cell.y) * step(cell.y, 0.75);
-		col = mix(col, glass_color.rgb, w);
-	}
-	ALBEDO = col;
-	ROUGHNESS = 1.0;
-}
-"""
-const PALETTE := ["e8d8b0", "d9c7a0", "f0e6d0", "c9b58a", "e3c9a0", "bfa77a", "f5efe0", "d4b48c"]
 const ENTER_MAX_SPEED := 9.0   # m/s - slow down to enter a place
-
-static var _building_shader: Shader
+const SIDEWALK_COLOR := "a39d90"
 
 var world_rect: Rect2 = Rect2(0, 0, 900, 700)
 var roads: Array = []          # Rect2 (x, z, w, d): drivable asphalt
@@ -41,13 +17,19 @@ var zones: Array = []          # {"id": String, "pos": Vector2}
 var spawns: Dictionary = {}    # spawn id -> {"pos": Vector2, "yaw": float}
 var default_spawn: Dictionary = {"pos": Vector2(140, 100), "yaw": -PI / 2.0}
 var fog_density: float = 0.0035
+var fog_color: Color = Color.html("efd9b4")
+var ground_color: Color = Color.html("c4ad7e")
 var palm_collisions: bool = true
+var auto_markings: bool = true # centre dashes + edge lines for every road rect
+var markings: Array = []       # custom lane lines, see add_marking()
+var arch: RiyadhBuilder
 
 var car: Car
 var chase_cam: ChaseCamera
 var _engine: EngineSound
 var _active_zone: LocationZone
 var _palms: Array = []
+var _lamps: Array = []
 var _rng := RandomNumberGenerator.new()
 var _info_label: Label
 var _goals_label: Label
@@ -61,9 +43,14 @@ func _configure() -> void:
 	pass
 
 
-## Extra scenery (signs, gantries, landmarks...). Called after roads/lots exist.
+## Extra scenery (signs, landmarks, gantries...). Called after roads and lots exist.
 func _decorate() -> void:
 	pass
+
+
+## Override to choose what stands on a lot. Default: a mid-rise block.
+func _build_lot(lot: Rect2) -> void:
+	arch.midrise(lot, _rng.randf_range(12.0, 28.0), arch.sand_color())
 
 
 func _extra_info() -> String:
@@ -80,49 +67,77 @@ func add_zone(id: String, pos: Vector2, spawn_offset: Vector2 = Vector2.ZERO) ->
 	spawns[id] = {"pos": pos + off, "yaw": (-PI / 2.0) if off.x > 0.0 else (PI / 2.0)}
 
 
-## A hand-placed building that also reserves its footprint so lots don't overlap it.
+## A hand-placed Najdi-style building that also reserves its footprint so no lot overlaps it.
+## (Subclasses call this from _decorate/_configure-time data; the builder exists by then
+## only for _decorate, so landmarks are queued and built in _build_buildings.)
 func add_landmark(rect: Rect2, height: float, color: Color, sign_text: String = "") -> void:
 	reserved.append(rect)
-	_add_building(rect, height, color, true, sign_text)
+	_landmarks.append({"rect": rect, "height": height, "color": color, "text": sign_text})
+
+
+func add_palm_at(p: Vector2) -> void:
+	_palms.append(p)
 
 
 func add_palm_line(a: Vector2, b: Vector2, spacing: float) -> void:
-	var length := a.distance_to(b)
-	var count := int(length / spacing)
+	var count := int(a.distance_to(b) / spacing)
 	for i in count + 1:
 		var p := a.lerp(b, float(i) / maxf(1.0, float(count)))
 		if not _on_road(p, 3.0):
 			_palms.append(p)
 
 
-## A sign gantry across a road. `facing_east` signs are read by drivers heading +X.
-func add_gantry(pos: Vector2, road_width: float, text: String, facing_east: bool = true) -> void:
+func add_lamp_line(a: Vector2, b: Vector2, spacing: float) -> void:
+	var count := int(a.distance_to(b) / spacing)
+	for i in count + 1:
+		var p := a.lerp(b, float(i) / maxf(1.0, float(count)))
+		if not _on_road(p, 1.0):
+			_lamps.append(p)
+
+
+## One painted line. `horizontal` roads run along x; `across` is that line's z (or x).
+func add_marking(horizontal: bool, along: float, length: float, across: float, width: float,
+		dashed: bool, color: Color = Color.html("f4f1de")) -> void:
+	markings.append({"h": horizontal, "along": along, "length": length, "across": across,
+			"width": width, "dashed": dashed, "color": color})
+
+
+## A green overhead sign gantry across a road. Read by drivers heading +X.
+func add_gantry(pos: Vector2, road_width: float, text: String) -> void:
 	var half := road_width * 0.5 + 2.0
-	for s: float in [-1.0, 1.0]:
-		_add_box_mesh(Vector3(pos.x, 4.0, pos.y + half * s), Vector3(0.8, 8.0, 0.8), Color.html("8d99ae"))
-	_add_box_mesh(Vector3(pos.x, 7.6, pos.y), Vector3(1.0, 1.0, half * 2.0 + 0.8), Color.html("8d99ae"))
-	var board := _add_box_mesh(Vector3(pos.x, 6.0, pos.y), Vector3(0.4, 3.0, road_width * 0.8), Color.html("1b7f3b"))
+	var steel := Color.html("8d99ae")
+	for side: float in [-1.0, 1.0]:
+		arch.deco(Vector3(pos.x, 5.0, pos.y + half * side), Vector3(0.9, 10.0, 0.9), steel)
+	arch.deco(Vector3(pos.x, 9.4, pos.y), Vector3(1.0, 1.0, half * 2.0 + 0.9), steel)
+	var board := arch.deco(Vector3(pos.x, 6.6, pos.y), Vector3(0.4, 4.8, minf(road_width * 0.8, 34.0)), Color.html("1b7f3b"))
 	var lbl := Label3D.new()
 	lbl.text = text
 	lbl.font_size = 64
-	lbl.pixel_size = 0.03
+	lbl.pixel_size = 0.032
 	lbl.outline_size = 0
 	lbl.modulate = Color.WHITE
-	lbl.rotation_degrees.y = -90.0 if facing_east else 90.0
-	lbl.position = Vector3(-0.25 if facing_east else 0.25, 0, 0)
+	lbl.rotation_degrees.y = -90.0
+	lbl.position = Vector3(-0.25, 0, 0)
 	board.add_child(lbl)
 
 
 # ---- lifecycle ----------------------------------------------------------------
 
+var _landmarks: Array = []
+
 func _ready() -> void:
 	_rng.seed = 7
 	_configure()
 	_build_environment()
+	arch = RiyadhBuilder.new(self, _rng)
 	_build_ground_and_roads()
+	for l: Dictionary in _landmarks:
+		arch.shop(l["rect"], l["height"], l["color"], l["text"])
 	_build_buildings()
 	_decorate()
+	arch.finish()
 	_build_palms()
+	_build_lamps()
 	_build_walls()
 	_spawn_zones()
 	_spawn_car()
@@ -137,11 +152,11 @@ func _exit_tree() -> void:
 
 func _process(_delta: float) -> void:
 	var kmh := int(absf(car.forward_speed) * 3.6)
-	_speed_label.text = "%d\nkm/h   G%d" % [kmh, car.gear] if car.forward_speed >= -0.5 else "%d\nkm/h   R" % kmh
+	_speed_label.text = ("%d\nkm/h   G%d" % [kmh, car.gear]) if car.forward_speed >= -0.5 else ("%d\nkm/h   R" % kmh)
 	_info_label.text = "%s%s" % [Game.character()["name"], _extra_info()]
 	if _active_zone:
 		var slow := absf(car.forward_speed) <= ENTER_MAX_SPEED
-		_prompt_label.text = ("Press E to enter: %s" % _active_zone.title) if slow else "Slow down to enter %s" % _active_zone.title
+		_prompt_label.text = ("Press E to enter: %s" % _active_zone.title) if slow else ("Slow down to enter %s" % _active_zone.title)
 		if slow and Input.is_action_just_pressed("interact"):
 			Router.enter_location(_active_zone.location_id)
 	else:
@@ -177,17 +192,18 @@ func _build_environment() -> void:
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.82, 0.76, 0.66)
-	env.ambient_light_energy = 0.8
+	env.ambient_light_energy = 0.65
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_exposure = 0.8
 	env.fog_enabled = true
-	env.fog_light_color = Color.html("efd9b4")
+	env.fog_light_color = fog_color
 	env.fog_density = fog_density
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-52.0, -35.0, 0.0)
-	sun.light_energy = 0.6
+	sun.light_energy = 0.55
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 150.0
 	add_child(sun)
@@ -199,10 +215,10 @@ func _build_ground_and_roads() -> void:
 	plane.size = world_rect.size + Vector2(2400, 2400)
 	ground.mesh = plane
 	ground.position = Vector3(world_rect.get_center().x, -0.05, world_rect.get_center().y)
-	ground.material_override = _flat(Color.html("c4ad7e"))
+	ground.material_override = arch.flat(ground_color)
 	add_child(ground)
 
-	var asphalt := _flat(Color.html("3a3d42"))
+	var asphalt := arch.flat(Color.html("3a3d42"))
 	for r: Rect2 in roads:
 		var mi := MeshInstance3D.new()
 		var bm := BoxMesh.new()
@@ -212,37 +228,72 @@ func _build_ground_and_roads() -> void:
 		mi.material_override = asphalt
 		add_child(mi)
 
-	# lane markings: one merged mesh for every dash + edge line
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for r: Rect2 in roads:
-		var horizontal := r.size.x >= r.size.y
-		var length := r.size.x if horizontal else r.size.y
-		var width := r.size.y if horizontal else r.size.x
-		var mid := (r.get_center().y if horizontal else r.get_center().x)
-		var start := (r.position.x if horizontal else r.position.y)
-		var d := 0.0
-		while d < length:
-			_add_strip(st, horizontal, start + d, 4.0, mid, 0.25)
-			d += 10.0
-		for side: float in [-1.0, 1.0]:
-			_add_strip(st, horizontal, start, length, mid + side * (width * 0.5 - 0.6), 0.2)
-	var markings := MeshInstance3D.new()
-	markings.mesh = st.commit()
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color.html("f4f1de")
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	markings.material_override = mat
-	markings.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(markings)
+	# raised sidewalks around every city block
+	for b: Rect2 in blocks:
+		var slab := b.grow(6.0)
+		var sm := MeshInstance3D.new()
+		var sb := BoxMesh.new()
+		sb.size = Vector3(slab.size.x, 0.12, slab.size.y)
+		sm.mesh = sb
+		sm.position = Vector3(slab.get_center().x, 0.05, slab.get_center().y)
+		sm.material_override = arch.flat(Color.html(SIDEWALK_COLOR))
+		add_child(sm)
+	_build_markings()
 
 
-## One white rectangle along a road: `along` start/length, centred on `across`.
+func _build_markings() -> void:
+	var all: Array = markings.duplicate()
+	if auto_markings:
+		var white := Color.html("f4f1de")
+		for r: Rect2 in roads:
+			var horizontal := r.size.x >= r.size.y
+			var length := r.size.x if horizontal else r.size.y
+			var width := r.size.y if horizontal else r.size.x
+			var mid := r.get_center().y if horizontal else r.get_center().x
+			var start := r.position.x if horizontal else r.position.y
+			all.append({"h": horizontal, "along": start, "length": length, "across": mid,
+					"width": 0.25, "dashed": true, "color": white})
+			for side: float in [-1.0, 1.0]:
+				all.append({"h": horizontal, "along": start, "length": length,
+						"across": mid + side * (width * 0.5 - 0.6), "width": 0.2, "dashed": false, "color": white})
+	var tools: Dictionary = {}   # colour hex -> SurfaceTool
+	for m: Dictionary in all:
+		var col: Color = m["color"]
+		var key := col.to_html()
+		if not tools.has(key):
+			var st := SurfaceTool.new()
+			st.begin(Mesh.PRIMITIVE_TRIANGLES)
+			tools[key] = st
+		var tool: SurfaceTool = tools[key]
+		var along: float = m["along"]
+		var length2: float = m["length"]
+		if m["dashed"]:
+			var d := 0.0
+			while d < length2:
+				_add_strip(tool, m["h"], along + d, minf(4.0, length2 - d), m["across"], m["width"])
+				d += 10.0
+		else:
+			_add_strip(tool, m["h"], along, length2, m["across"], m["width"])
+	for key: String in tools:
+		var done: SurfaceTool = tools[key]
+		var mi := MeshInstance3D.new()
+		mi.mesh = done.commit()
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color.html(key)
+		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		mi.material_override = mat
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(mi)
+
+
+## One painted rectangle along a road: `along` start/length, centred on `across`.
 func _add_strip(st: SurfaceTool, horizontal: bool, along: float, length: float, across: float, width: float) -> void:
 	var y := 0.02
-	var a := Vector3(along, y, across - width * 0.5) if horizontal else Vector3(across - width * 0.5, y, along)
-	var b := Vector3(along + length, y, across + width * 0.5) if horizontal else Vector3(across + width * 0.5, y, along + length)
-	var p := [Vector3(a.x, y, a.z), Vector3(b.x, y, a.z), Vector3(b.x, y, b.z), Vector3(a.x, y, b.z)]
+	var x0 := along if horizontal else across - width * 0.5
+	var x1 := along + length if horizontal else across + width * 0.5
+	var z0 := across - width * 0.5 if horizontal else along
+	var z1 := across + width * 0.5 if horizontal else along + length
+	var p := [Vector3(x0, y, z0), Vector3(x1, y, z0), Vector3(x1, y, z1), Vector3(x0, y, z1)]
 	st.set_normal(Vector3.UP)
 	for idx in [0, 1, 2, 0, 2, 3]:
 		st.add_vertex(p[idx])
@@ -257,12 +308,8 @@ func _build_buildings() -> void:
 		for i in cols:
 			for j in rows:
 				var lot := Rect2(b.position.x + i * cw + 4.0, b.position.y + j * ch + 4.0, cw - 8.0, ch - 8.0)
-				if _hits_reserved(lot):
-					continue
-				var dist := lot.get_center().distance_to(world_rect.get_center())
-				var tall := clampf(1.0 - dist / 600.0, 0.1, 1.0)
-				var h := _rng.randf_range(10.0, 14.0 + 38.0 * tall)
-				_add_building(lot, h, Color.html(PALETTE[_rng.randi() % PALETTE.size()]), true)
+				if not _hits_reserved(lot):
+					_build_lot(lot)
 
 
 func _hits_reserved(r: Rect2) -> bool:
@@ -279,61 +326,6 @@ func _on_road(p: Vector2, margin: float) -> bool:
 	return false
 
 
-func _building_material(color: Color, windows: bool) -> ShaderMaterial:
-	if _building_shader == null:
-		_building_shader = Shader.new()
-		_building_shader.code = BUILDING_SHADER
-	var m := ShaderMaterial.new()
-	m.shader = _building_shader
-	m.set_shader_parameter("base_color", color)
-	m.set_shader_parameter("windows", 1.0 if windows else 0.0)
-	return m
-
-
-func _add_building(rect: Rect2, height: float, color: Color, windows: bool, sign_text: String = "") -> void:
-	var body := StaticBody3D.new()
-	body.position = Vector3(rect.get_center().x, height * 0.5, rect.get_center().y)
-	var shape := BoxShape3D.new()
-	shape.size = Vector3(rect.size.x, height, rect.size.y)
-	var cs := CollisionShape3D.new()
-	cs.shape = shape
-	body.add_child(cs)
-	var mi := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = shape.size
-	mi.mesh = bm
-	mi.material_override = _building_material(color, windows)
-	body.add_child(mi)
-	if sign_text != "":
-		var lbl := Label3D.new()
-		lbl.text = sign_text
-		lbl.font_size = 96
-		lbl.pixel_size = 0.06
-		lbl.outline_size = 24
-		lbl.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-		lbl.position = Vector3(0, height * 0.5 + 5.0, 0)
-		body.add_child(lbl)
-	add_child(body)
-
-
-func _add_box_mesh(pos: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
-	var mi := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = size
-	mi.mesh = bm
-	mi.position = pos
-	mi.material_override = _flat(color)
-	add_child(mi)
-	return mi
-
-
-func _flat(color: Color) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.roughness = 1.0
-	return m
-
-
 func _build_palms() -> void:
 	if _palms.is_empty():
 		return
@@ -347,15 +339,12 @@ func _build_palms() -> void:
 	crown_mesh.height = 3.0
 	crown_mesh.radial_segments = 8
 	crown_mesh.rings = 4
-	var trunks := _multimesh(trunk_mesh, _flat(Color.html("7f5539")))
-	var crowns := _multimesh(crown_mesh, _flat(Color.html("2d6a4f")))
-	trunks.multimesh.instance_count = _palms.size()
-	crowns.multimesh.instance_count = _palms.size()
+	var trunks: Array = []
+	var crowns: Array = []
 	var palm_body := StaticBody3D.new()
-	for i in _palms.size():
-		var p: Vector2 = _palms[i]
-		trunks.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, Vector3(p.x, 3.5, p.y)))
-		crowns.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY.scaled(Vector3(1.4, 0.7, 1.4)), Vector3(p.x, 7.4, p.y)))
+	for p: Vector2 in _palms:
+		trunks.append(Transform3D(Basis.IDENTITY, Vector3(p.x, 3.5, p.y)))
+		crowns.append(Transform3D(Basis.IDENTITY.scaled(Vector3(1.4, 0.7, 1.4)), Vector3(p.x, 7.4, p.y)))
 		if palm_collisions:
 			var cs := CollisionShape3D.new()
 			var cyl := CylinderShape3D.new()
@@ -364,35 +353,49 @@ func _build_palms() -> void:
 			cs.shape = cyl
 			cs.position = Vector3(p.x, 2.0, p.y)
 			palm_body.add_child(cs)
+	arch.multi(trunk_mesh, arch.flat(Color.html("7f5539")), trunks)
+	arch.multi(crown_mesh, arch.flat(Color.html("2d6a4f")), crowns)
 	add_child(palm_body)
 
 
-func _multimesh(mesh: Mesh, mat: Material) -> MultiMeshInstance3D:
-	var mmi := MultiMeshInstance3D.new()
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = mesh
-	mmi.multimesh = mm
-	mmi.material_override = mat
-	add_child(mmi)
-	return mmi
+func _build_lamps() -> void:
+	if _lamps.is_empty():
+		return
+	var poles: Array = []
+	var heads: Array = []
+	for p: Vector2 in _lamps:
+		poles.append(Transform3D(Basis.IDENTITY, Vector3(p.x, 4.5, p.y)))
+		heads.append(Transform3D(Basis.IDENTITY, Vector3(p.x, 9.1, p.y)))
+	var pole := CylinderMesh.new()
+	pole.top_radius = 0.1
+	pole.bottom_radius = 0.16
+	pole.height = 9.0
+	pole.radial_segments = 6
+	arch.multi(pole, arch.flat(Color.html("6c757d")), poles)
+	var head := BoxMesh.new()
+	head.size = Vector3(1.8, 0.25, 0.5)
+	var glow := StandardMaterial3D.new()
+	glow.albedo_color = Color.html("fff4cc")
+	glow.emission_enabled = true
+	glow.emission = Color.html("ffe9a8")
+	glow.emission_energy_multiplier = 0.8
+	arch.multi(head, glow, heads)
 
 
 func _build_walls() -> void:
 	var body := StaticBody3D.new()
 	var r := world_rect
 	var t := 10.0
-	for rect in [
+	for rect: Rect2 in [
 			Rect2(r.position.x - t, r.position.y - t, r.size.x + 2.0 * t, t),
 			Rect2(r.position.x - t, r.end.y, r.size.x + 2.0 * t, t),
 			Rect2(r.position.x - t, r.position.y, t, r.size.y),
 			Rect2(r.end.x, r.position.y, t, r.size.y)]:
-		var rr: Rect2 = rect
 		var cs := CollisionShape3D.new()
 		var box := BoxShape3D.new()
-		box.size = Vector3(rr.size.x, 8.0, rr.size.y)
+		box.size = Vector3(rect.size.x, 8.0, rect.size.y)
 		cs.shape = box
-		cs.position = Vector3(rr.get_center().x, 4.0, rr.get_center().y)
+		cs.position = Vector3(rect.get_center().x, 4.0, rect.get_center().y)
 		body.add_child(cs)
 	add_child(body)
 

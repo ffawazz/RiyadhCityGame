@@ -106,6 +106,7 @@ var spawn_id: String = "home"        # where the car appears when a driving scen
 
 func _ready() -> void:
 	_register_inputs()
+	_install_arabic_font()
 
 
 # --- Characters ---------------------------------------------------------
@@ -224,3 +225,11 @@ func _add_action(action: String, keys: Array, buttons: Array = [], axes: Array =
 		jm.axis = axis[0] as JoyAxis
 		jm.axis_value = axis[1]
 		InputMap.action_add_event(action, jm)
+
+
+## Bundled Noto Sans Arabic becomes a fallback of the default font, so Arabic
+## text (menu title, number plate) renders the same on every PC.
+func _install_arabic_font() -> void:
+	var arabic := load("res://assets/fonts/NotoSansArabic.ttf") as Font
+	if arabic != null:
+		ThemeDB.fallback_font.fallbacks = [arabic]

@@ -19,3 +19,6 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 * `res://tests/drive_shots.tscn` takes driving screenshots (needs a real renderer).
 
 All ten mini-games are playable greybox versions; art and audio are the next step.
+
+**Make it yours:** the licence plate digits are `PLATE_NUMBER` / `PLATE_NUMBER_AR` at the top of `scripts/driving/car.gd`; clothes and skin colours of the family are in `_build_interior_and_people()`.
+Fonts: `assets/fonts/NotoSansArabic.ttf` (SIL Open Font License, see `OFL-NotoSansArabic.txt`).
