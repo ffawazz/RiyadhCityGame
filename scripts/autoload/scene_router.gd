@@ -57,6 +57,8 @@ func go(scene_key: String) -> void:
 func enter_location(location_id: String) -> void:
 	var loc: Dictionary = Game.LOCATIONS[location_id]
 	Game.spawn_id = loc.get("spawn", location_id)
+	if location_id == "home":
+		Game.repair_car()      # Dad fixes the car at home
 	match loc["action"]:
 		"minigame":
 			start_minigame(loc["target"], loc["return"])

@@ -10,10 +10,17 @@ extends CharacterBody3D
 const MAX_SPEED := 50.0      # m/s (~180 km/h)
 const MAX_REVERSE := 9.0
 const ACCEL := 11.0
-const BRAKE := 30.0
+const BRAKE := 26.0
 const WHEELBASE := 3.0
-const GRIP := 9.0            # how fast sideways slip is killed (1/s)
-const DRIFT_GRIP := 2.2      # ...with the handbrake on
+
+## --- tyre model (Driver-style: tail-happy, big controllable slides) ---
+const FRONT_ARM := 1.4       # centre of gravity -> front axle (m)
+const REAR_ARM := 1.6        # centre of gravity -> rear axle (m)
+const YAW_INERTIA := 2.4     # radius of gyration squared (m^2)
+const CORNER_STIFF := 70.0   # lateral acceleration per radian of tyre slip
+const GRIP_FRONT := 10.5     # max lateral acceleration of the front tyres (m/s^2)
+const GRIP_REAR := 10.0      # ... of the rear tyres
+const HANDBRAKE_GRIP := 0.2  # rear grip left when the handbrake locks the rear wheels
 const GEAR_START := [0.0, 9.0, 19.0, 30.0, 41.0]
 const GEAR_END := [11.0, 21.0, 32.0, 43.0, 52.0]
 
@@ -28,7 +35,17 @@ var impact: float = 0.0            # last collision strength; the scene reads + 
 var airborne: bool = false
 var ground_fn: Callable = Callable()   # (x, z) -> ground height; set by the drive scene
 var vy: float = 0.0
+var yaw_rate: float = 0.0          # rad/s, positive = turning right
+var body_slip: float = 0.0         # angle between where the nose points and where the car travels
+var steer_pull: float = 0.0        # crash damage makes the car pull to one side
+var damage: CarDamage
+var skid: SkidMarks
+var _smoke_tyres: CPUParticles3D
 var _slope_pitch: float = 0.0
+var _skid_toggle: bool = false
+var _parts: Dictionary = {}
+
+signal crashed(strength: float)
 const GRAVITY := 12.0
 
 ## Saudi number plate (letters HXD). The Arabic row uses the Saudi plate letter
@@ -66,62 +83,186 @@ func set_cabin_visible(v: bool) -> void:
 	_people_group.visible = v
 
 
+func _ready() -> void:
+	damage = CarDamage.new(self, _parts)
+	damage.replay()
+	_smoke_tyres = CPUParticles3D.new()
+	_smoke_tyres.emitting = false
+	_smoke_tyres.amount = 30
+	_smoke_tyres.lifetime = 1.1
+	_smoke_tyres.direction = Vector3(0, 1, 0)
+	_smoke_tyres.spread = 35.0
+	_smoke_tyres.initial_velocity_min = 0.5
+	_smoke_tyres.initial_velocity_max = 2.0
+	_smoke_tyres.gravity = Vector3(0, 0.8, 0)
+	_smoke_tyres.local_coords = false
+	var puff := SphereMesh.new()
+	puff.radius = 0.32
+	puff.height = 0.64
+	puff.radial_segments = 6
+	puff.rings = 3
+	_smoke_tyres.mesh = puff
+	var puff_mat := StandardMaterial3D.new()
+	puff_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	puff_mat.vertex_color_use_as_albedo = true
+	puff_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_smoke_tyres.material_override = puff_mat
+	var curve := Curve.new()
+	curve.add_point(Vector2(0, 0.5))
+	curve.add_point(Vector2(1, 2.4))
+	_smoke_tyres.scale_amount_curve = curve
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(0.92, 0.92, 0.92, 0.32))
+	ramp.set_color(1, Color(0.9, 0.9, 0.9, 0.0))
+	_smoke_tyres.color_ramp = ramp
+	_smoke_tyres.position = Vector3(0, 0.3, 1.5)
+	add_child(_smoke_tyres)
+	skid = SkidMarks.new()
+	get_parent().add_child.call_deferred(skid)
+
+
+func repair() -> void:
+	damage.repair()
+
+
 func _physics_process(delta: float) -> void:
 	var throttle := Input.get_action_strength("accelerate")
 	var brake := Input.get_action_strength("brake")
 	var hand := Input.is_action_pressed("handbrake")
 	throttle_amount = throttle
+	var perf := damage.perf() if damage != null else 1.0
 
 	# smooth steering (returns to centre quicker than it turns in)
 	var steer_in := Input.get_axis("steer_left", "steer_right")
-	var rate := 7.0 if (steer_in == 0.0 or signf(steer_in) != signf(steer)) else 3.5
+	var rate := 9.0 if (steer_in == 0.0 or signf(steer_in) != signf(steer)) else 5.0
 	steer = move_toward(steer, steer_in, rate * delta)
 
-	# --- heading (bicycle model): turn rate grows with speed, steering lock shrinks ---
-	var speed_frac := clampf(absf(forward_speed) / MAX_SPEED, 0.0, 1.0)
-	var lock := lerpf(0.62, 0.11, speed_frac)
-	var yaw_rate := -(forward_speed / WHEELBASE) * tan(steer * lock)
-	if hand:
-		yaw_rate *= 1.25
-	rotation.y += yaw_rate * delta
-
-	# --- re-express the (unchanged) velocity in the new heading axes ---
+	# body-frame state: u = forward, v = sideways (right), yaw_rate = r (right is positive)
 	var fwd := -global_transform.basis.z
 	var right := global_transform.basis.x
+	var u := velocity.dot(fwd)
+	var v := velocity.dot(right)
+	var speed_abs := absf(u)
+	body_slip = atan2(v, maxf(speed_abs, 1.5)) if u > 0.0 else 0.0
+
+	# front wheel angle: speed-sensitive lock + auto counter-steer (forgiving, like Driver)
+	var lock := lerpf(0.55, 0.14, clampf(speed_abs / 38.0, 0.0, 1.0))
+	var assist := 0.0
+	if not hand and u > 4.0:
+		assist = clampf(body_slip * 1.0, -0.28, 0.28)
+	var delta_f := steer * lock + assist + steer_pull
+
+	# rear tyre grip: handbrake locks the wheels, full throttle at low speed breaks the tail loose
+	var rear_grip := GRIP_REAR * (HANDBRAKE_GRIP if hand else 1.0)
+	rear_grip *= 1.0 - 0.3 * throttle * clampf(1.0 - speed_abs / 30.0, 0.0, 1.0)
+	var top_speed := MAX_SPEED * perf
+	var heading_change := 0.0
+	var steps := 3
+	var h := delta / float(steps)
+	for i in steps:
+		var u_eff := maxf(absf(u), 2.5)
+		var alpha_f := atan2(v + FRONT_ARM * yaw_rate, u_eff) - delta_f
+		var alpha_r := atan2(v - REAR_ARM * yaw_rate, u_eff)
+		var f_front := _tyre_force(alpha_f, GRIP_FRONT)
+		var f_rear := _tyre_force(alpha_r, rear_grip)
+		var ax := 0.0
+		if throttle > 0.0:
+			ax += ACCEL * perf * throttle * clampf(1.0 - u / top_speed, 0.0, 1.0)
+		if brake > 0.0:
+			ax -= (BRAKE * brake) if u > 0.5 else (7.0 * brake if u > -MAX_REVERSE else 0.0)
+		if hand and u > 0.5:
+			ax -= 2.0                                    # locked rear wheels also scrub speed
+		var coasting := throttle == 0.0 and brake == 0.0
+		var drag := 0.0007 * u * absf(u) + (1.5 if u > 0.2 else (-1.5 if u < -0.2 else 0.0)) * (1.0 if coasting else 0.3)
+		ax -= drag + absf(f_front) * sin(absf(delta_f)) * 0.5      # cornering scrub
+		var dv := f_front * cos(delta_f) + f_rear - u * yaw_rate
+		var dr := (FRONT_ARM * f_front * cos(delta_f) - REAR_ARM * f_rear) / YAW_INERTIA
+		u += (ax + v * yaw_rate) * h
+		v += dv * h
+		yaw_rate += dr * h
+		yaw_rate *= 1.0 - 0.25 * h
+		# below walking pace the tyre model is meaningless: blend to simple steering geometry
+		var w_low := 1.0 - clampf((absf(u) - 1.5) / 3.5, 0.0, 1.0)
+		if w_low > 0.0:
+			yaw_rate = lerpf(yaw_rate, (u / WHEELBASE) * tan(delta_f), w_low)
+			v *= exp(-10.0 * h * w_low)
+		heading_change += yaw_rate * h
+	if absf(u) < 0.05 and throttle == 0.0 and brake == 0.0:
+		u = 0.0
+	rotation.y -= heading_change
+	fwd = -global_transform.basis.z
+	right = global_transform.basis.x
+	var pre_velocity := fwd * u + right * v
+	pre_velocity.y = 0.0
+	velocity = pre_velocity
+	sliding = absf(v) > 2.5 or (hand and u > 6.0)
+
+	move_and_slide()
+	_check_crash(pre_velocity)
+	# what the car really did this frame (walls and other cars take speed away)
+	velocity = get_real_velocity()
+	velocity.y = 0.0
+	_update_height(delta)
+	fwd = -global_transform.basis.z
+	right = global_transform.basis.x
 	forward_speed = velocity.dot(fwd)
 	lateral_speed = velocity.dot(right)
-
-	# --- engine / brakes / drag ---
-	if throttle > 0.0:
-		forward_speed += ACCEL * throttle * clampf(1.0 - forward_speed / MAX_SPEED, 0.0, 1.0) * delta
-	if brake > 0.0:
-		if forward_speed > 0.5:
-			forward_speed = maxf(0.0, forward_speed - BRAKE * brake * delta)
-		else:
-			forward_speed = maxf(-MAX_REVERSE, forward_speed - 7.0 * brake * delta)
-	if throttle == 0.0 and brake == 0.0:
-		forward_speed = move_toward(forward_speed, 0.0, (1.8 + 0.05 * absf(forward_speed)) * delta)
-	if hand:
-		forward_speed = move_toward(forward_speed, 0.0, 4.0 * delta)
-
-	# --- tyre grip: sideways slip decays; less grip when hard-cornering fast or on handbrake ---
-	var grip := DRIFT_GRIP if hand else GRIP * (1.0 - 0.45 * speed_frac * absf(steer))
-	lateral_speed *= exp(-grip * delta)
-	forward_speed = move_toward(forward_speed, 0.0, absf(lateral_speed) * 0.12 * delta)
-	sliding = absf(lateral_speed) > 3.0
-
-	velocity = fwd * forward_speed + right * lateral_speed
-	velocity.y = 0.0
-	var speed_before := velocity.length()
-	move_and_slide()
-	_update_height(delta)
-	impact = maxf(impact, speed_before - velocity.length())
-	forward_speed = velocity.dot(-global_transform.basis.z)
 	if absf(forward_speed) < 0.08 and throttle == 0.0:
 		forward_speed = 0.0
-
+	_tyre_effects(delta, hand)
 	_update_engine(forward_speed)
 	_update_visuals(delta, throttle, brake)
+
+
+## Lateral tyre force for a slip angle: linear up to the grip limit, then it falls off, so a
+## sliding tyre grips LESS than a rolling one (that is what lets the tail hang out and the car
+## keep its speed through a slide, like the old Driver games).
+func _tyre_force(alpha: float, grip: float) -> float:
+	var peak := grip / CORNER_STIFF
+	var a := absf(alpha)
+	if a <= peak:
+		return -CORNER_STIFF * alpha
+	var falloff := lerpf(1.0, 0.42, clampf((a - peak) / 0.4, 0.0, 1.0))
+	return -signf(alpha) * grip * falloff
+
+
+## Compare what the car wanted to do with what it got: a wall / car in the way = a crash.
+func _check_crash(pre_velocity: Vector3) -> void:
+	var worst := 0.0
+	var worst_normal := Vector3.ZERO
+	for i in get_slide_collision_count():
+		var n := get_slide_collision(i).get_normal()
+		n.y = 0.0
+		if n.length() < 0.1:
+			continue
+		n = n.normalized()
+		var hit := maxf(0.0, -pre_velocity.dot(n))
+		if hit > worst:
+			worst = hit
+			worst_normal = n
+	if worst > 2.0:
+		impact = maxf(impact, worst * 1.3)
+		yaw_rate *= 0.5
+	if worst > 3.0 and damage != null:
+		var local_n := global_transform.basis.inverse() * worst_normal
+		damage.take_hit(local_n, worst)
+		yaw_rate += clampf(local_n.x * worst * -0.05, -1.2, 1.2)     # the car gets knocked round
+		crashed.emit(worst)
+
+
+func _tyre_effects(delta: float, hand: bool) -> void:
+	var speed_now := velocity.length()
+	_smoke_tyres.emitting = sliding and speed_now > 5.0 and not airborne
+	if sliding and speed_now > 4.0 and not airborne and skid != null and is_instance_valid(skid):
+		_skid_toggle = not _skid_toggle
+		if _skid_toggle:
+			var dir := velocity.normalized()
+			for wx: float in [-0.99, 0.99]:
+				var p := global_transform * Vector3(wx, 0.0, 1.5)
+				var gy := 0.0
+				if ground_fn.is_valid():
+					gy = ground_fn.call(p.x, p.z)
+				skid.add_mark(Vector3(p.x, gy + 0.045, p.z), dir, speed_now * delta * 2.2 + 0.3)
 
 
 ## Follows the ground height; crests launch the car (roller-coaster road), landings thump.
@@ -167,7 +308,7 @@ func _update_visuals(delta: float, throttle: float, brake: float) -> void:
 	_visual.rotation.x = lerpf(_visual.rotation.x, accel_pitch + _slope_pitch, 1.0 - exp(-8.0 * delta))
 	_visual.rotation.z = lerpf(_visual.rotation.z, roll, 1.0 - exp(-8.0 * delta))
 	for w in _front_wheels:
-		w.rotation.y = -steer * 0.5
+		w.rotation.y = -steer * 0.5 + float(w.get_meta("toe", 0.0))
 	for sp in _spinners:
 		sp.rotation.x -= forward_speed / 0.4 * delta
 	_wheel_pivot.get_child(0).rotation.y = -steer * 1.6
@@ -198,38 +339,45 @@ func _build_model() -> void:
 
 	# lower body, sloped hood, bumpers
 	_add(_visual, Vector3(1.95, 0.62, 5.0), Vector3(0, 0.69, 0), body)
-	_add(_visual, Vector3(1.9, 0.16, 1.6), Vector3(0, 1.04, -1.65), body, Vector3(-5, 0, 0))
-	_add(_visual, Vector3(1.9, 0.26, 0.22), Vector3(0, 0.5, -2.42), dark)           # front bumper
-	_add(_visual, Vector3(1.9, 0.26, 0.22), Vector3(0, 0.5, 2.42), dark)            # rear bumper
+	_parts["hood"] = _add(_visual, Vector3(1.9, 0.16, 1.6), Vector3(0, 1.04, -1.65), body, Vector3(-5, 0, 0))
+	_parts["front_bumper"] = _add(_visual, Vector3(1.9, 0.26, 0.22), Vector3(0, 0.5, -2.42), dark)
+	_parts["rear_bumper"] = _add(_visual, Vector3(1.9, 0.26, 0.22), Vector3(0, 0.5, 2.42), dark)
 	_add(_visual, Vector3(1.8, 0.12, 4.6), Vector3(0, 0.34, 0), dark)               # underbody / sills
 	# signature Mazda grille + chrome wing + badge, LED headlights
-	_add(_visual, Vector3(0.95, 0.3, 0.06), Vector3(0, 0.80, -2.53), dark)
+	_parts["grille"] = _add(_visual, Vector3(0.95, 0.3, 0.06), Vector3(0, 0.80, -2.53), dark)
 	_add(_visual, Vector3(1.0, 0.05, 0.07), Vector3(0, 0.95, -2.54), chrome)
 	var badge := _add(_visual, Vector3(0.14, 0.14, 0.04), Vector3(0, 0.8, -2.58), chrome)
 	badge.mesh = _cyl(0.075, 0.075, 0.04, 14)
 	badge.rotation_degrees.x = 90.0
+	var headlights: Array = []
 	for x: float in [-0.72, 0.72]:
-		_add(_visual, Vector3(0.5, 0.11, 0.07), Vector3(x, 0.92, -2.52), _mat(Color.html("f4f8ff"), 0.0, 0.2, 2.2))
+		headlights.append(_add(_visual, Vector3(0.5, 0.11, 0.07), Vector3(x, 0.92, -2.52), _mat(Color.html("f4f8ff"), 0.0, 0.2, 2.2)))
 		_add(_visual, Vector3(0.14, 0.07, 0.07), Vector3(x * 1.22, 0.6, -2.5), _mat(Color.html("ffd166"), 0.0, 0.3, 1.2))  # fog light
+	_parts["headlights"] = headlights
 	# tail lights (C-shape: bar + vertical piece), brake light material shared
 	_brake_mat = _mat(Color.html("c1121f"), 0.0, 0.3, 0.4)
 	_brake_mat.emission_enabled = true
 	_brake_mat.emission = Color.html("ff1a1a")
+	var taillights: Array = []
 	for x: float in [-1.0, 1.0]:
-		_add(_visual, Vector3(0.14, 0.4, 0.06), Vector3(x * 0.84, 1.0, 2.52), _brake_mat)    # vertical piece
+		taillights.append(_add(_visual, Vector3(0.14, 0.4, 0.06), Vector3(x * 0.84, 1.0, 2.52), _brake_mat))    # vertical piece
 		_add(_visual, Vector3(0.3, 0.1, 0.06), Vector3(x * 0.62, 1.15, 2.52), _brake_mat)    # top arm of the "C"
 		_add(_visual, Vector3(0.3, 0.1, 0.06), Vector3(x * 0.62, 0.85, 2.52), _brake_mat)    # bottom arm
-	_add(_visual, Vector3(1.4, 0.05, 0.05), Vector3(0, 1.22, 2.5), chrome)          # tailgate chrome bar
+	_parts["taillights"] = taillights
+	_parts["tailgate_bar"] = _add(_visual, Vector3(1.4, 0.05, 0.05), Vector3(0, 1.22, 2.5), chrome)          # tailgate chrome bar
 	# mirrors and door shut-lines
 	for x: float in [-1.05, 1.05]:
-		_add(_visual, Vector3(0.2, 0.13, 0.12), Vector3(x, 1.18, -0.8), body)
+		_parts["mirror_l" if x < 0.0 else "mirror_r"] = _add(_visual, Vector3(0.2, 0.13, 0.12), Vector3(x, 1.18, -0.8), body)
 		for z: float in [-0.35, 0.65, 1.7]:
 			_add(_visual, Vector3(0.012, 0.55, 0.012), Vector3(x * 0.93, 0.7, z), dark)
 		_add(_visual, Vector3(0.012, 0.03, 4.3), Vector3(x * 0.93, 0.98, 0.0), chrome)  # beltline chrome
 
 	# --- greenhouse (cabin group): pillars, roof, rails, see-through glass ---------
 	var cab := _cabin_group
-	_add(cab, Vector3(1.8, 0.05, 1.12), Vector3(0, 1.35, -0.58), glass, Vector3(-39.5, 0, 0))   # windshield
+	var glass_front := _mat(Color(0.35, 0.5, 0.62, 0.28), 0.0, 0.1, 0.0, true)
+	_parts["windshield"] = _add(cab, Vector3(1.8, 0.05, 1.12), Vector3(0, 1.35, -0.58), glass_front, Vector3(-39.5, 0, 0))   # windshield
+	_parts["windshield_mat"] = glass_front
+	_parts["glass_mat"] = glass
 	_add(cab, Vector3(1.78, 0.06, 2.15), Vector3(0, 1.73, 0.93), body)                          # roof
 	_add(cab, Vector3(1.8, 0.05, 0.75), Vector3(0, 1.43, 2.22), glass, Vector3(50.7, 0, 0))    # rear glass
 	for x: float in [-0.7, 0.7]:
@@ -271,6 +419,7 @@ func _build_wheels() -> void:
 			_spinners.append(spinner)
 			if wz < 0.0:
 				_front_wheels.append(pivot)
+				_parts["wheel_fl" if wx < 0.0 else "wheel_fr"] = pivot
 
 
 func _build_interior_and_people() -> void:

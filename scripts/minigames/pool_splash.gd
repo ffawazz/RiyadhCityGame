@@ -1,4 +1,6 @@
 extends MiniGameBase
+
+const _Art := preload("res://scripts/ui/avatar_art.gd")
 ## Farm pool: switch lanes with W/S or Up/Down, collect rings, avoid floaties.
 ## Duck's swim_speed makes the water rush by faster, so more rings arrive.
 
@@ -81,6 +83,7 @@ func _draw_game() -> void:
 			draw_circle(p, 24.0, Color.html("ff006e"))
 			draw_circle(p, 10.0, Color.html("48cae4"))
 	var me := Vector2(PLAYER_X, _lane_y(_lane))
-	draw_circle(me, 30.0, Color.html("ffd60a") if _hit_flash <= 0.0 else Color.html("ff0054"))
-	draw_circle(me + Vector2(26, -6), 16.0, Color.html("ffd60a"))
-	draw_colored_polygon(PackedVector2Array([me + Vector2(40, -8), me + Vector2(58, -2), me + Vector2(40, 2)]), Color.html("ff7b00"))
+	if _hit_flash > 0.0:
+		draw_circle(me, 44.0, Color(1.0, 0.0, 0.33, 0.45))
+	_Art.draw_animal(self, Game.animal_id, me + Vector2(0, 46), 0.5, 1.0, sin(_bob * 6.0) * 4.0, sin(_bob * 5.0) * 0.08)
+	draw_arc(me + Vector2(0, 28), 46.0, 0.2, PI - 0.2, 16, Color(1, 1, 1, 0.6), 3.0)   # ripple

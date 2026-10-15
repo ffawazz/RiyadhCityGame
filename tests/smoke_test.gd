@@ -45,6 +45,7 @@ func _ready() -> void:
 	failures += await _driving_test()
 	failures += await _traffic_and_bumps_test()
 	failures += await _farm_test()
+	failures += await _damage_persistence_test()
 	print("FAILURES: ", failures)
 	get_tree().quit(failures)
 
@@ -182,4 +183,27 @@ func _farm_test() -> int:
 			print("ok farm zones: the ", animal, " can enter all ", FarmWorld.STATIONS.size(), " activity circles")
 		farm.queue_free()
 		await get_tree().process_frame
+	return fails
+
+
+## A damaged car keeps its damage when a scene reloads, and the garage / home repair it.
+func _damage_persistence_test() -> int:
+	var fails := 0
+	Game.car_damage = 70.0
+	Game.car_hits = [{"n": Vector3(0, 0, 1), "s": 14.0}, {"n": Vector3(1, 0, 0), "s": 9.0}, {"n": Vector3(0, 0, -1), "s": 8.0}]
+	Game.spawn_id = "home"
+	var city := (load("res://scenes/city.tscn") as PackedScene).instantiate()
+	add_child(city)
+	await get_tree().physics_frame
+	if absf(city.car.damage.health() - 30.0) > 0.01:
+		printerr("FAIL: damage was not kept across scenes")
+		fails += 1
+	city.car.repair()
+	if Game.car_damage != 0.0 or Game.car_hits.size() != 0:
+		printerr("FAIL: repair did not clear the damage")
+		fails += 1
+	if fails == 0:
+		print("ok damage: kept across scenes (30% health) and repaired")
+	city.queue_free()
+	await get_tree().process_frame
 	return fails

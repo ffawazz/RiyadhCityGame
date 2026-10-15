@@ -36,6 +36,9 @@ var _info_label: Label
 var _goals_label: Label
 var _prompt_label: Label
 var _speed_label: Label
+var _health_label: Label
+var _toast_label: Label
+var _toast_t: float = 0.0
 
 
 # ---- override in subclasses ---------------------------------------------------
@@ -164,9 +167,19 @@ func _process(_delta: float) -> void:
 		var slow := absf(car.forward_speed) <= ENTER_MAX_SPEED
 		_prompt_label.text = ("Press E to enter: %s" % _active_zone.title) if slow else ("Slow down to enter %s" % _active_zone.title)
 		if slow and Input.is_action_just_pressed("interact"):
-			Router.enter_location(_active_zone.location_id)
+			var loc: Dictionary = Game.LOCATIONS[_active_zone.location_id]
+			if loc["action"] == "repair":
+				car.repair()
+				_toast("Car repaired! Good as new")
+			else:
+				Router.enter_location(_active_zone.location_id)
 	else:
 		_prompt_label.text = ""
+	var health := car.damage.health()
+	_health_label.text = "Car: %d%%" % int(health)
+	_health_label.add_theme_color_override("font_color", Color.html("80ed99") if health > 60.0 else (Color.html("ffd166") if health > 30.0 else Color.html("ff5d5d")))
+	_toast_t = maxf(0.0, _toast_t - get_process_delta_time())
+	_toast_label.visible = _toast_t > 0.0
 	if Input.is_action_just_pressed("camera"):
 		chase_cam.cycle_mode()
 	if Input.is_action_just_pressed("ui_cancel"):
@@ -432,6 +445,7 @@ func _spawn_car() -> void:
 	for child in get_children():
 		if child is Traffic:
 			(child as Traffic).player = car
+	car.crashed.connect(_on_crash)
 	chase_cam = ChaseCamera.new()
 	chase_cam.target = car
 	add_child(chase_cam)
@@ -459,6 +473,16 @@ func _build_hud() -> void:
 	_speed_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_speed_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
+	_health_label = _hud_label(hud, 24)
+	_health_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
+	_health_label.position.y -= 150.0
+	_health_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+
+	_toast_label = _hud_label(hud, 34)
+	_toast_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 110)
+	_toast_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_toast_label.visible = false
+
 	_prompt_label = _hud_label(hud, 30)
 	_prompt_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 70)
 	_prompt_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
@@ -468,6 +492,19 @@ func _build_hud() -> void:
 	help.text = "W/S gas & brake   A/D steer   SPACE handbrake   C camera   E enter   Esc menu"
 	help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
 	help.grow_vertical = Control.GROW_DIRECTION_BEGIN
+
+
+func _toast(text: String) -> void:
+	_toast_label.text = text
+	_toast_t = 2.5
+
+
+func _on_crash(strength: float) -> void:
+	var health := car.damage.health()
+	if health < 25.0:
+		_toast("The car is wrecked! Visit Mazda Service or go home to repair it")
+	elif strength > 12.0:
+		_toast("CRASH!")
 
 
 func _hud_label(parent: Node, font_size: int) -> Label:

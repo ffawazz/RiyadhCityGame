@@ -40,6 +40,7 @@ func _configure() -> void:
 	add_zone("supermarket", Vector2(100, 100))
 	add_zone("school", Vector2(800, 100))
 	add_zone("farm", Vector2(800, 560))
+	add_zone("garage", Vector2(450, 100))
 	default_spawn = spawns["home"]
 
 	# destination landmarks (Najdi-style boxes with signs)
@@ -47,6 +48,7 @@ func _configure() -> void:
 	add_landmark(Rect2(118, 118, 84, 52), 9.0, Color.html("d9c7a0"), "TAMIMI SUPERMARKET")
 	add_landmark(Rect2(698, 118, 84, 60), 14.0, Color.html("e8cf8c"), "SCHOOL")
 	add_landmark(Rect2(698, 578, 84, 46), 6.0, Color.html("cdd8a6"), "FARM ROAD")
+	add_landmark(Rect2(468, 118, 70, 44), 8.0, Color.html("b9d3e8"), "MAZDA SERVICE")
 	# famous Riyadh sights keep their footprint free
 	reserved.append(Rect2(KINGDOM_CENTRE.x - 72, KINGDOM_CENTRE.y - 40, 144, 106))
 	reserved.append(Rect2(FAISALIYAH.x - 38, FAISALIYAH.y - 38, 76, 76))

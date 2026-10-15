@@ -1,4 +1,6 @@
 extends MiniGameBase
+
+const _Art := preload("res://scripts/ui/avatar_art.gd")
 ## Cornhole: SPACE locks the aim, SPACE again locks the power. 5 bags.
 ## In the hole = 3 points, on the board = 1. Goat's strong legs forgive sloppy aim.
 
@@ -102,6 +104,7 @@ func _draw_game() -> void:
 	draw_rect(board.grow(-8), Color.html("b08968"))
 	draw_circle(_hole(), 26.0, Color.html("2b2d42"))
 	var start := _start_pos()
+	_Art.draw_animal(self, Game.animal_id, start + Vector2(-110, 50), 0.8)
 	var bag_pos := start
 	if _phase == "fly" or _phase == "result":
 		bag_pos = start.lerp(_land, minf(_fly, 1.0)) + Vector2(0, -sin(minf(_fly, 1.0) * PI) * 120.0)

@@ -1,4 +1,6 @@
 extends MiniGameBase
+
+const _Art := preload("res://scripts/ui/avatar_art.gd")
 ## Basketball: stop the swinging power meter on the green zone.
 ## 5 shots; a power meter swings back and forth, stop it inside the green zone.
 ## Goat's jump perk widens the green zone.
@@ -80,7 +82,7 @@ func _draw_game() -> void:
 	draw_line(hoop + Vector2(-34, 0), hoop + Vector2(34, 0), Color.html("e63946"), 6.0)
 	var start := Vector2(size.x * 0.2, size.y * 0.8)
 	draw_rect(Rect2(0, size.y - 80, size.x, 80), Color.html("bc6c25"))           # court
-	draw_circle(start + Vector2(-30, -40), 26.0, Color.html("e8b98a"))            # shooter head placeholder
+	_Art.draw_animal(self, Game.animal_id, start + Vector2(-70, 50), 0.85, 1.0, 0.0, 0.0)
 	var ball := start
 	if _phase != "aim":
 		var end := hoop + Vector2((_power - SWEET) * 700.0, 0.0)

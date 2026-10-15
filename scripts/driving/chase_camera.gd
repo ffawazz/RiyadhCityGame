@@ -49,7 +49,9 @@ func _place(delta: float) -> void:
 		var b := Basis(Vector3.UP, _yaw)
 		global_transform = Transform3D(b, car_pos + b * Vector3(0, 1.6, 0.1) + shake_offset)
 		return
-	_yaw = lerp_angle(_yaw, target.rotation.y, 1.0 - exp(-3.0 * delta))
+	# the camera lags in turns and swings out with the slide, so you see the tail come round
+	var look_yaw := target.rotation.y - target.body_slip * 0.6
+	_yaw = lerp_angle(_yaw, look_yaw, 1.0 - exp(-3.0 * delta))
 	var behind := 8.5 if mode == Mode.CHASE else 16.0
 	var height := 3.2 if mode == Mode.CHASE else 7.5
 	var b2 := Basis(Vector3.UP, _yaw)

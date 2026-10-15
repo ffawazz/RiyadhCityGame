@@ -55,3 +55,57 @@ static func girl(ci: CanvasItem, cx: float, base_y: float, h: float, dress: Colo
 			ci.draw_rect(Rect2(pet.x + 3, pet.y - 52, 6, 22), Color.html("f1f1f1"))
 
 
+
+
+## The farm animal avatars (Shatoor the duck, Hassan the goat, the chicken).
+static func draw_animal(ci: CanvasItem, kind: String, feet: Vector2, scale: float, facing: float = 1.0, lift: float = 0.0, tilt: float = 0.0) -> void:
+	ci.draw_set_transform(feet + Vector2(0.0, -lift), tilt, Vector2(scale * facing, scale))
+	match kind:
+		"goat":
+			goat(ci, 0.0, 0.0)
+		"chicken":
+			chicken(ci, 0.0, 0.0)
+		_:
+			duck(ci, 0.0, 0.0)
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+static func duck(ci: CanvasItem, cx: float, base_y: float) -> void:
+	ci.draw_rect(Rect2(cx - 20, base_y - 8, 14, 8), Color.html("ff9f1c"))
+	ci.draw_rect(Rect2(cx + 6, base_y - 8, 14, 8), Color.html("ff9f1c"))
+	ci.draw_circle(Vector2(cx, base_y - 55), 48.0, Color.html("ffd60a"))
+	ci.draw_circle(Vector2(cx - 12, base_y - 55), 24.0, Color.html("f4b400"))   # wing
+	ci.draw_circle(Vector2(cx + 22, base_y - 118), 30.0, Color.html("ffd60a"))  # head
+	ci.draw_colored_polygon(PackedVector2Array([
+		Vector2(cx + 46, base_y - 120), Vector2(cx + 76, base_y - 112), Vector2(cx + 46, base_y - 104)]),
+		Color.html("ff7b00"))
+	ci.draw_circle(Vector2(cx + 28, base_y - 126), 4.0, Color.BLACK)
+
+
+static func goat(ci: CanvasItem, cx: float, base_y: float) -> void:
+	var fur := Color.html("e9e4d8")
+	for lx in [-44.0, -20.0, 14.0, 38.0]:
+		ci.draw_rect(Rect2(cx + lx, base_y - 50, 10, 50), Color.html("8d8574"))
+	ci.draw_rect(Rect2(cx - 55, base_y - 105, 110, 60), fur)
+	ci.draw_circle(Vector2(cx + 58, base_y - 118), 26.0, fur)                  # head
+	ci.draw_line(Vector2(cx + 50, base_y - 140), Vector2(cx + 40, base_y - 165), Color.html("6b5d45"), 6.0)
+	ci.draw_line(Vector2(cx + 66, base_y - 140), Vector2(cx + 76, base_y - 165), Color.html("6b5d45"), 6.0)
+	ci.draw_colored_polygon(PackedVector2Array([
+		Vector2(cx + 62, base_y - 100), Vector2(cx + 74, base_y - 100), Vector2(cx + 68, base_y - 80)]),
+		Color.html("8d8574"))                                               # beard
+	ci.draw_circle(Vector2(cx + 66, base_y - 124), 4.0, Color.BLACK)
+
+
+static func chicken(ci: CanvasItem, cx: float, base_y: float) -> void:
+	ci.draw_rect(Rect2(cx - 14, base_y - 30, 5, 30), Color.html("ff9f1c"))
+	ci.draw_rect(Rect2(cx + 9, base_y - 30, 5, 30), Color.html("ff9f1c"))
+	ci.draw_circle(Vector2(cx, base_y - 70), 44.0, Color.html("fdfdfd"))
+	ci.draw_circle(Vector2(cx - 14, base_y - 66), 22.0, Color.html("e0e0e0"))  # wing
+	ci.draw_circle(Vector2(cx + 30, base_y - 120), 22.0, Color.html("fdfdfd")) # head
+	for i in 3:
+		ci.draw_circle(Vector2(cx + 20 + i * 10, base_y - 142 + (i % 2) * 4), 7.0, Color.html("e63946"))
+	ci.draw_colored_polygon(PackedVector2Array([
+		Vector2(cx + 50, base_y - 122), Vector2(cx + 68, base_y - 116), Vector2(cx + 50, base_y - 110)]),
+		Color.html("ff9f1c"))
+	ci.draw_circle(Vector2(cx + 38, base_y - 126), 3.5, Color.BLACK)
+	ci.draw_circle(Vector2(cx + 42, base_y - 104), 6.0, Color.html("e63946")) # wattle

@@ -1,4 +1,6 @@
 extends MiniGameBase
+
+const _Art := preload("res://scripts/ui/avatar_art.gd")
 ## Farm ping pong: W/S or Up/Down (or the mouse) moves your paddle. Return the
 ## ball as many times in a row as you can. Chicken's reflex = faster paddle.
 
@@ -74,6 +76,7 @@ func _draw_game() -> void:
 	draw_rect(Rect2(40, 60, size.x - 80, size.y - 100), Color.html("2d6a4f"))
 	draw_line(Vector2(size.x * 0.5, 60), Vector2(size.x * 0.5, size.y - 40), Color(1, 1, 1, 0.6), 4.0)
 	text(Vector2(24, 40), "Time %d    Rally %d    Best %d" % [maxi(0, ceili(_time_left)), _rally, _best], 28, Color.WHITE)
+	_Art.draw_animal(self, Game.animal_id, Vector2(36, _py + 70.0), 0.5)
 	draw_rect(Rect2(60, _py - PADDLE_H * 0.5, 14, PADDLE_H), Color.html("ef476f"))
 	draw_rect(Rect2(size.x - 74, _ay - PADDLE_H * 0.5, 14, PADDLE_H), Color.html("8d99ae"))
 	draw_circle(_ball, BALL_R, Color.html("fff3b0"))

@@ -103,6 +103,10 @@ const LOCATIONS := {
 		"title": "Barn: Change Animal", "title_ar": "الحظيرة",
 		"action": "scene", "target": "animal_select", "color": "a98467",
 	},
+	"garage": {
+		"title": "Mazda Service: Repair", "title_ar": "ورشة مازدا",
+		"action": "repair", "color": "4cc9f0",
+	},
 	"farm_gate": {
 		"title": "Farm Gate", "title_ar": "بوابة المزرعة",
 		"action": "scene", "target": "animal_select", "color": "8ac926",
@@ -123,6 +127,8 @@ const DAILY_GOALS := [
 var character_id: String = "daniah"
 var animal_id: String = "duck"
 var completed: Dictionary = {}       # minigame_id -> best stars (0-3)
+var car_damage: float = 0.0          # 0 = perfect, 100 = wrecked
+var car_hits: Array = []             # recent crashes, replayed to rebuild the dents
 var custom_music: Dictionary = {}    # character id -> path of the song file the player chose
 var pending_minigame: String = ""    # set by Router before loading the host scene
 var minigame_return: String = "city" # Router scene key to go back to
@@ -165,7 +171,13 @@ func select_animal(id: String) -> void:
 
 # --- Progress -----------------------------------------------------------
 
+func repair_car() -> void:
+	car_damage = 0.0
+	car_hits.clear()
+
+
 func new_game() -> void:
+	repair_car()
 	completed.clear()
 	animal_id = "duck"
 	spawn_id = "home"
@@ -221,6 +233,7 @@ func save_game() -> void:
 	cfg.set_value("save", "character", character_id)
 	cfg.set_value("save", "animal", animal_id)
 	cfg.set_value("save", "completed", completed)
+	cfg.set_value("save", "car_damage", car_damage)
 	cfg.save(SAVE_PATH)
 
 
@@ -233,6 +246,8 @@ func load_game() -> bool:
 	character_id = saved_char if CHARACTERS.has(saved_char) else "daniah"
 	animal_id = saved_animal if ANIMALS.has(saved_animal) else "duck"
 	completed = cfg.get_value("save", "completed", {})
+	car_damage = float(cfg.get_value("save", "car_damage", 0.0))
+	car_hits.clear()
 	spawn_id = "home"
 	return true
 

@@ -194,6 +194,7 @@ func _build_stations() -> void:
 	# --- the family car parked at the gate ---
 	var car := Car.new()
 	car.set_physics_process(false)
+	car.remove_from_group("player")   # it is only a prop: it must not trigger the activity circles
 	car.position = Vector3(70.0, 0.0, 128.0)
 	car.rotation.y = -PI / 2.0 + 0.25
 	add_child(car)

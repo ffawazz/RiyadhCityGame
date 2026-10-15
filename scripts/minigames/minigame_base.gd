@@ -17,6 +17,7 @@ var bg_color: Color = Color.html("264653")
 
 var _panel_layer: CenterContainer
 var _done: bool = false
+var _on_button: Callable = Callable()   # what E / Space / Enter does while a panel is up
 
 
 func _ready() -> void:
@@ -138,6 +139,13 @@ func _draw() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# a start / continue panel is showing: E, Space, Enter or a click presses its button
+	if _on_button.is_valid() and not running and (event.is_action_pressed("interact") or is_confirm(event)):
+		get_viewport().set_input_as_handled()
+		var cb := _on_button
+		_on_button = Callable()
+		cb.call()
+		return
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		_finish(0)
@@ -146,6 +154,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _clear_panel() -> void:
+	_on_button = Callable()
 	for child in _panel_layer.get_children():
 		child.queue_free()
 
@@ -162,7 +171,8 @@ func _show_panel(title: String, body: String, button_text: String, callback: Cal
 	margin.add_child(col)
 	col.add_child(UIKit.label(title, 36))
 	col.add_child(UIKit.label(body, 22, Color.WHITE, 560.0))
-	var btn := UIKit.button(button_text, callback, Vector2(220, 56))
+	_on_button = callback
+	var btn := UIKit.button(button_text + "   (E / Space)", callback, Vector2(300, 56))
 	col.add_child(btn)
 	_panel_layer.add_child(panel)
 	btn.grab_focus()

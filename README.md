@@ -7,7 +7,9 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 * Engine: Godot 4.3+ (GDScript). Open this folder in Godot (first open imports the project and registers the `class_name` scripts), then press **F5**.
   Headless check: `godot --headless --import`.
 
-**Controls:** W/S gas & brake (hold S to reverse), A/D steer, **SPACE handbrake (drift!)**, **C** camera (chase / far / hood), **E** enter a light-beam location (slow down first), Esc back to menu/skip. Gamepad supported.
+**Controls:** W/S gas & brake (hold S to reverse), A/D steer, **SPACE handbrake** (tap it while turning with the gas on for a *Driver*-style slide; the tyres leave skid marks and smoke), **C** camera (chase / far / hood), **E** enter a light-beam location (slow down first), Esc back to menu/skip. Gamepad supported.
+
+**Crashes:** hit walls or cars hard and the CX-9 gets damaged for real: dents, a crumpled hood and bumper, broken lights, cracked glass, steam, smoke and finally flames, plus less power and a pull to one side. The HUD shows `Car: %`. Repair it at **Mazda Service** (blue circle on the top-middle avenue) or by going home.
 
 **Soundtrack:** Daniah = American rock, Sarah = Korean pop, Lamia = Arabic (maqam Hijaz). Generated in code. To play **your own song** for a sister: on the character screen press **Choose song...** under her name and pick an mp3/ogg (the choice is remembered), or put `lamia.mp3` etc. in the `music` folder.
 
@@ -20,7 +22,8 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 **Tests (Godot 4.3):**
 * `godot --headless res://tests/smoke_test.tscn` loads every scene, plays every mini-game and drives the car (headless prints harmless `mesh_get_surface_count` messages from the dummy renderer).
 * `godot --headless res://tests/music_test.tscn -- <folder>` renders the three tracks to WAV files.
-* `res://tests/drive_shots.tscn` takes driving screenshots (needs a real renderer).
+* `godot --headless res://tests/handling_test.tscn` checks handbrake turns, cornering and crash damage numbers.
+* `res://tests/drive_shots.tscn`, `crash_shots.tscn`, `scene_tour.tscn` take screenshots (need a real renderer, e.g. xvfb).
 
 All ten mini-games are playable greybox versions.
 
