@@ -57,6 +57,14 @@ func _ready() -> void:
 	for i in 10:
 		await get_tree().process_frame
 	await _shot(out, "p_plaza")
+	_place(park, 160.0, 250.0, 0.0, 0.0)
+	for i in 10:
+		await get_tree().process_frame
+	await _shot(out, "p_camp")
+	_place(park, 250.0, 330.0, 0.0, 0.0)
+	for i in 10:
+		await get_tree().process_frame
+	await _shot(out, "p_entrance")
 	_place(park, 330.0, 190.0, PI, 0.0)
 	for i in 10:
 		await get_tree().process_frame

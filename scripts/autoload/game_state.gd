@@ -108,13 +108,9 @@ const LOCATIONS := {
 		"title": "Fly a Kite", "title_ar": "الطائرات الورقية",
 		"action": "minigame", "target": "park_kite", "return": "kharrarah_park", "color": "9b5de5",
 	},
-	"park_swim": {
-		"title": "Seasonal Lake Swim", "title_ar": "السباحة في البحيرة",
-		"action": "minigame", "target": "park_swim", "return": "kharrarah_park", "color": "48cae4",
-	},
-	"park_bike": {
-		"title": "Bike Ride", "title_ar": "ركوب الدراجات",
-		"action": "minigame", "target": "park_bike", "return": "kharrarah_park", "color": "fb5607",
+	"park_boat": {
+		"title": "Boat Ride on the Lake", "title_ar": "بحيرة الخرارة",
+		"action": "minigame", "target": "park_boat", "return": "kharrarah_park", "color": "48cae4",
 	},
 	"farm_exit": {
 		"title": "Drive Home", "title_ar": "العودة للبيت",
@@ -194,7 +190,7 @@ const DAILY_GOALS := [
 	{"label": "Living Room", "ids": ["living_room"], "need": 1},
 	{"label": "Kitchen", "ids": ["kitchen"], "need": 1},
 	{"label": "Backyard", "ids": ["backyard"], "need": 1},
-	{"label": "Al-Kharrarah Park", "ids": ["park_bbq", "park_kite", "park_swim", "park_bike"], "need": 1},
+	{"label": "Al-Kharrarah Park", "ids": ["park_bbq", "park_kite", "park_boat"], "need": 1},
 	{"label": "Farm Fun", "ids": ["farm_swim", "farm_pingpong", "farm_cornhole", "farm_basketball", "farm_archery", "farm_swing", "farm_moto", "farm_lemons", "farm_goatfeed", "farm_eggs", "farm_sand", "farm_trampoline", "farm_slide"], "need": 1},
 ]
 

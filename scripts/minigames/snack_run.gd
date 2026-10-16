@@ -6,8 +6,8 @@ const _Art := preload("res://scripts/ui/avatar_art.gd")
 ## car hits you. Each safe delivery = 1 trip. Sarah has long legs (faster), Daniah gets
 ## slower traffic.
 
-const GAME_TIME := 45.0
-const LANES := 5
+const GAME_TIME := 60.0
+const LANES := 3
 const SNACKS := ["Dates", "Juice", "Chips", "Biscuits", "Water", "Laban", "Chocolate", "Popcorn"]
 const CAR_COLORS := ["e63946", "f1faee", "457b9d", "ffb703", "2a9d8f", "8d99ae", "f4a261", "9b5de5"]
 
@@ -21,7 +21,7 @@ var _trips: int = 0
 var _time_left: float = 0.0
 var _stun: float = 0.0
 var _lane_top: float = 0.0
-var _lane_h: float = 64.0
+var _lane_h: float = 84.0
 var _shop_y: float = 0.0
 var _car_y: float = 0.0
 var _msg: String = ""
@@ -35,8 +35,8 @@ func _ready() -> void:
 
 func _on_start() -> void:
 	_time_left = GAME_TIME + float(Game.mod("extra_time", 0.0))
-	_lane_top = 190.0
-	_shop_y = 150.0
+	_lane_top = 240.0
+	_shop_y = 170.0
 	_car_y = size.y - 100.0
 	_p = Vector2(size.x * 0.5, _car_y)
 	_trips = 0
@@ -46,11 +46,11 @@ func _on_start() -> void:
 	_cars.clear()
 	for lane in LANES:
 		var dir := 1.0 if lane % 2 == 0 else -1.0
-		var spd := dir * randf_range(130.0, 250.0)
+		var spd := dir * randf_range(70.0, 130.0)      # slow, friendly traffic
 		var x := randf_range(0.0, 200.0)
 		while x < size.x + 200.0:
-			_cars.append({"x": x, "lane": lane, "w": randf_range(84.0, 130.0), "speed": spd, "color": Color.html(CAR_COLORS[randi() % CAR_COLORS.size()])})
-			x += randf_range(240.0, 420.0)
+			_cars.append({"x": x, "lane": lane, "w": randf_range(80.0, 110.0), "speed": spd, "color": Color.html(CAR_COLORS[randi() % CAR_COLORS.size()])})
+			x += randf_range(480.0, 760.0)      # big gaps to cross
 
 
 func _lane_y(l: int) -> float:
@@ -74,19 +74,18 @@ func _tick(delta: float) -> void:
 			_walk_t += delta * 10.0
 			if absf(v.x) > 0.1:
 				_face = signf(v.x)
-		var sp := 230.0 * float(Game.mod("reach", 1.0)) * (0.5 + 0.5 * 1.0)
+		var sp := 300.0 * float(Game.mod("reach", 1.0))
 		_p += v * sp * delta
 		_p.x = clampf(_p.x, 30.0, size.x - 30.0)
 		_p.y = clampf(_p.y, _shop_y - 6.0, _car_y + 10.0)
 		# hit by a car?
-		var body := Rect2(_p.x - 14.0, _p.y - 40.0, 28.0, 44.0)
+		var body := Rect2(_p.x - 9.0, _p.y - 28.0, 18.0, 30.0)     # small hit box: near misses are fine
 		for c: Dictionary in _cars:
 			var cy := _lane_y(c["lane"]) + 8.0
 			if body.intersects(Rect2(float(c["x"]), cy, float(c["w"]), _lane_h - 16.0)):
-				_stun = 1.1
-				_say("Ouch! Back to the car")
-				_carrying = false
-				_p = Vector2(size.x * 0.5, _car_y)
+				_stun = 0.6
+				_say("Oops! Watch the car")     # no penalty: you keep your snack
+				_p.y = _lane_top + LANES * _lane_h + 8.0 if _p.y > _lane_y(c["lane"]) + _lane_h * 0.5 else _lane_top - 8.0
 				break
 	# reach the shop / the car
 	if not _carrying and _p.y < _shop_y + 24.0:
@@ -98,7 +97,7 @@ func _tick(delta: float) -> void:
 		_target = SNACKS[randi() % SNACKS.size()]
 		_say("Delivered! +1 trip")
 	if _time_left <= 0.0:
-		complete(maxi(1, stars_from(_trips, 3, 5, 7)))
+		complete(maxi(1, stars_from(_trips, 2, 4, 6)))
 
 
 func _say(t: String) -> void:

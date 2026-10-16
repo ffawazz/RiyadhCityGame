@@ -34,7 +34,7 @@ const ENTRIES := {
 	},
 	"baqalah_snacks": {
 		"title": "Baqalah Snack Run",
-		"instructions": "Dad is waiting in the car! Dash across the busy forecourt to the shop, grab the snack, and run back - without getting hit!\nWASD to move.",
+		"instructions": "Dad is waiting in the car! Cross the forecourt to the shop, grab the snack, and bring it back to the car. The cars are slow - just wait for a gap!\nWASD to move.",
 		"script": "res://scripts/minigames/snack_run.gd",
 	},
 	"farm_swim": {
@@ -107,15 +107,10 @@ const ENTRIES := {
 		"instructions": "The desert wind is perfect for kites! Steer your kite through the golden rings and dodge the birds.\nMove the mouse (or WASD / drag your finger) to steer the kite.",
 		"script": "res://scripts/minigames/kite_flying.gd",
 	},
-	"park_swim": {
-		"title": "Lake Swim",
-		"instructions": "The rain made a lake in the desert! Swim across it collecting rings.",
-		"script": "res://scripts/minigames/pool_splash.gd",
-	},
-	"park_bike": {
-		"title": "Sand Bike Ride",
-		"instructions": "Ride across the dunes! Hold D / Right for gas, A / Left to brake. In the air tilt with W / S to land on both wheels. Grab the stars and jump the dunes!",
-		"script": "res://scripts/minigames/motorbike_game.gd",
+	"park_boat": {
+		"title": "Boat Ride on Al-Kharrarah Lake",
+		"instructions": "The rain made a lake in the desert! Drive the little boat: W / Up = motor, S / Down = slow down, A / D steer. Collect the floating buoys, go around the rocks and say hi to the ducks!",
+		"script": "res://scripts/minigames/boat_game.gd",
 	},
 	"farm_basketball": {
 		"title": "Farm Basketball",

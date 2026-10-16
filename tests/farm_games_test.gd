@@ -158,6 +158,23 @@ func _ready() -> void:
 			kt.pointer = r["pos"]
 		kt._tick(0.02)
 	_check(kt._score > 0, "kite: steering through rings scores (%d)" % kt._score)
+	# boat: sail onto a buoy
+	var bt: MiniGameBase = await _mk("park_boat")
+	bt._pos = (bt._buoys[0]["pos"] as Vector2) + Vector2(5, 5)
+	bt._tick(0.02)
+	_check(bt._score > 0, "boat: reaching a buoy scores (%d)" % bt._score)
+	Input.action_press("accelerate")
+	for i in 120:
+		bt._tick(1.0 / 60.0)
+	Input.action_release("accelerate")
+	_check(bt._speed > 100.0, "boat: the motor drives the boat (%.0f px/s)" % bt._speed)
+	# baqalah: a car hit no longer costs the snack
+	var sn: MiniGameBase = await _mk("baqalah_snacks")
+	sn._carrying = true
+	var c0: Dictionary = sn._cars[0]
+	sn._p = Vector2(float(c0["x"]) + 10.0, sn._lane_y(int(c0["lane"])) + 40.0)
+	sn._tick(0.02)
+	_check(sn._carrying and sn._stun > 0.0, "baqalah: bumping a car only stuns you, the snack is kept")
 	print("FAILURES: ", fails)
 	get_tree().quit(fails)
 

@@ -79,7 +79,7 @@ func _ready() -> void:
 	# --- the park
 	Game.spawn_id = "kharrarah"
 	var park: KharrarahParkScene = await _scene("res://scenes/kharrarah_park.tscn")
-	_check(park.zones.size() == 5, "park: all five activity circles exist")
+	_check(park.zones.size() == 4, "park: the BBQ, kite, boat and exit circles exist")
 	var peak := 0.0
 	for xx in range(0, 520, 8):
 		for zz in range(0, 420, 8):

@@ -1,6 +1,6 @@
 class_name KharrarahParkScene
 extends DriveScene
-## Al-Kharrarah Park: a desert family park with a flat plaza (camping + BBQ, kites, bikes, the
+## Al-Kharrarah Park: a desert family park with a flat plaza (camping + BBQ, kites, boats on the
 ## seasonal rain lake with its glowing water) ringed by big sand dunes to drive the 4x4 on.
 ## Sidr and acacia trees dot the sand. Loose sand = less grip. Drive into a circle and press E.
 
@@ -23,8 +23,7 @@ func _configure() -> void:
 	traction = 0.82                     # loose sand
 	add_zone("park_bbq", Vector2(165, 215), Vector2(0, 40))
 	add_zone("park_kite", Vector2(325, 125), Vector2(0, 40))
-	add_zone("park_swim", Vector2(360, 200), Vector2(0, -40))
-	add_zone("park_bike", Vector2(175, 305), Vector2(0, -40))
+	add_zone("park_boat", Vector2(360, 200), Vector2(0, -40))
 	add_zone("kharrarah_exit", Vector2(260, 408), Vector2(0, -38))
 	spawns["kharrarah"] = {"pos": Vector2(260, 362), "yaw": 0.0}
 	default_spawn = spawns["kharrarah"]
@@ -63,9 +62,9 @@ func _decorate() -> void:
 	_build_trees()
 	_build_camp()
 	_build_kites()
-	_build_bikes()
 	_build_gate()
 	_build_walkway()
+	_build_crowd()
 
 
 ## The sand as one mesh (the flat ground plane sits below it).
@@ -130,7 +129,7 @@ func _build_lake() -> void:
 	rim.position = Vector3(LAKE.x, 0.02, LAKE.y)
 	rim.material_override = arch.flat(Color.html("b79b68"))
 	add_child(rim)
-	arch.label("بحيرة الضوء السائل", Vector3(LAKE.x, 7.0, LAKE.y - 20.0), 72, 0.06)
+	arch.label("بحيرة الخرارة", Vector3(LAKE.x, 7.0, LAKE.y - 20.0), 72, 0.06)
 
 
 func _build_trees() -> void:
@@ -249,33 +248,6 @@ func _build_kites() -> void:
 	arch.label("الطائرات الورقية", Vector3(325.0, 14.0, 118.0), 64, 0.05)
 
 
-func _build_bikes() -> void:
-	var c := Vector3(175.0, 0.0, 292.0)
-	for i in 4:
-		var bike := Node3D.new()
-		bike.position = c + Vector3(-9.0 + i * 5.0, 0.0, 0.0)
-		bike.rotation.y = 0.3 * i
-		add_child(bike)
-		for wz: float in [-0.7, 0.7]:
-			var w := MeshInstance3D.new()
-			var tm := TorusMesh.new()
-			tm.inner_radius = 0.32
-			tm.outer_radius = 0.4
-			w.mesh = tm
-			w.rotation_degrees.z = 90.0
-			w.position = Vector3(0, 0.4, wz)
-			w.material_override = arch.flat(Color.html("212529"))
-			bike.add_child(w)
-		var frame := MeshInstance3D.new()
-		var fm := BoxMesh.new()
-		fm.size = Vector3(0.08, 0.08, 1.4)
-		frame.mesh = fm
-		frame.position = Vector3(0, 0.85, 0)
-		frame.material_override = arch.flat(Color.html(["e63946", "3a86ff", "ffd60a", "06d6a0"][i]))
-		bike.add_child(frame)
-	arch.label("ركوب الدراجات", Vector3(c.x, 5.0, c.z + 3.0), 64, 0.05)
-
-
 func _build_gate() -> void:
 	var gate := Color.html("c9a66b")
 	for side: float in [-1.0, 1.0]:
@@ -299,3 +271,52 @@ func _build_walkway() -> void:
 	for i in 6:
 		var bx := 90.0 + i * 70.0
 		arch.deco(Vector3(bx, 0.5, 276.0), Vector3(2.4, 0.5, 0.7), Color.html("8b5e34"))
+
+
+## It is always busy here: parked cars by the tents, the lake and the gate, a seated family
+## round the camp fire, and cars cruising over the sand.
+func _build_crowd() -> void:
+	var cols := [Color.html("f1faee"), Color.html("2b2d42"), Color.html("8d99ae"), Color.html("e63946"), Color.html("457b9d"),
+			Color.html("e9c46a"), Color.html("6a994e"), Color.html("adb5bd"), Color.html("1d3557")]
+	var kinds := ["suv", "suv", "sedan", "pickup", "van", "sedan", "suv"]
+	var parked_spots: Array[Vector3] = []     # x, z, yaw
+	for i in 5:       # beside the tents
+		parked_spots.append(Vector3(120.0 + i * 11.0, 178.0 - (i % 2) * 3.0, PI * 0.5 + 0.2 * float(i % 3)))
+	for i in 4:       # by the lake shore
+		parked_spots.append(Vector3(300.0 + i * 12.0, 300.0 + (i % 2) * 6.0, PI * 0.9 - 0.3 * float(i)))
+	for i in 4:       # near the kite field
+		parked_spots.append(Vector3(285.0 + i * 13.0, 120.0 + (i % 2) * 5.0, 0.4 * float(i)))
+	for i in 5:       # lined up along the entrance
+		parked_spots.append(Vector3(215.0 if i < 3 else 305.0, 330.0 + (i % 3) * 14.0, PI * 0.5 if i < 3 else -PI * 0.5))
+	for i in parked_spots.size():
+		var pc := ParkCar.new()
+		var sp := parked_spots[i]
+		pc.setup_park(self, kinds[i % kinds.size()], cols[(i * 4) % cols.size()], Vector2(sp.x, sp.y), sp.z, true)
+		add_child(pc)
+	var loops: Array = [
+		[Vector2(120, 110), Vector2(320, 100), Vector2(440, 150), Vector2(450, 340), Vector2(300, 345), Vector2(110, 325)],
+		[Vector2(200, 255), Vector2(255, 165), Vector2(310, 205), Vector2(255, 275)],
+		[Vector2(60, 80), Vector2(460, 80), Vector2(485, 385), Vector2(60, 370)],
+	]
+	var counts := [3, 2, 3]
+	var speeds := [7.0, 5.0, 9.0]
+	var n := 0
+	for li in loops.size():
+		var wp: Array[Vector2] = []
+		for v: Vector2 in loops[li]:
+			wp.append(v)
+		for k in counts[li]:
+			var start: int = (k * wp.size()) / int(counts[li])
+			var pc2 := ParkCar.new()
+			var nxt := wp[(start + 1) % wp.size()]
+			var yaw := atan2(-(nxt.x - wp[start].x), -(nxt.y - wp[start].y))
+			pc2.setup_park(self, kinds[(n + 2) % kinds.size()], cols[(n * 2 + 1) % cols.size()], wp[start], yaw, false, wp, speeds[li], (start + 1) % wp.size())
+			add_child(pc2)
+			n += 1
+	# a family warming up by the camp fire
+	var fire := Campfire.new()
+	fire.position = Vector3(156.0, 0.0, 215.0)
+	add_child(fire)
+	var fam := FarmFamily.new()
+	add_child(fam)
+	fam.setup_seated(fire.position, 2, 5, 0.3, 1.2, 3.0)

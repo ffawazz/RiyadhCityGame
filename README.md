@@ -21,7 +21,9 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 
 **More farm fun:** pick **Mishmish the cat** or **Qunfuz the hedgehog** at the gate, alongside Shatoor, Hassan and the chicken. New games: **Lemon Picking** (a grove), **Feed the Goats** (goat pen), **Collect Eggs** (hen house), **Sand Digging** (hot/cold treasure hunt), **Trampoline** (time your bounces, then flip) and **Slide** (next to the swings). Cats dash around, hedgehogs waddle (and curl up when you come close), goats and hens live in their pens.
 
-**Farm road & park:** a **big downhill slope** (a 40 m ridge, then a steep drop) just before the Baqalah makes the ride fun, with more bumps at the roller-coaster road, and **there is no car damage on the farm road**. Halfway to the roller coaster, take the south slip road into **Al-Kharrarah Park**: drive the sand dunes in your 4x4, then join camping & BBQ (grill the kebabs), kite flying, a swim in the seasonal rain lake and a bike ride. **TURBO:** hold **SHIFT** (or the TURBO button on a phone) while driving - the bar drains and refills.
+**Farm road & park:** a **big downhill slope** (a 40 m ridge, then a steep drop) just before the Baqalah makes the ride fun, with more bumps at the roller-coaster road, and **there is no car damage on the farm road**. Halfway to the roller coaster, take the south slip road into **Al-Kharrarah Park**: drive the sand dunes in your 4x4, then join camping & BBQ (grill the kebabs), kite flying, a **boat ride on بحيرة الخرارة** (the seasonal rain lake). The park is crowded with other families' cars, parked and cruising. **TURBO:** hold **SHIFT** (or the TURBO button on a phone) while driving - the bar drains and refills.
+
+**Farm life:** families (Mom in colourful clothes, no abaya) walk around the farm and **sit round a campfire to keep warm**. The Baqalah snack run is now easy: slow traffic, 3 lanes, no penalty for a bump.
 
 **Run it the safe way (Windows):** `.\run_game.ps1` imports new scripts first, starts the game and writes any errors to `game.log` - send me that file if something breaks.
 

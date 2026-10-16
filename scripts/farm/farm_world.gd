@@ -50,6 +50,7 @@ func _ready() -> void:
 	_spawn_zones()
 	_spawn_animal()
 	_spawn_families()
+	_build_fireside()
 	_spawn_critters()
 	_build_hud()
 
@@ -455,6 +456,20 @@ func _spawn_critters() -> void:
 		hen.setup("hen", Rect2(159, 62, 9, 9), 400 + i)
 		add_child(hen)
 		critters.append(hen)
+
+
+## Two families sitting round a campfire, warming up.
+func _build_fireside() -> void:
+	var c := Vector3(138.0, 0.0, 88.0)
+	var fire := Campfire.new()
+	fire.position = c
+	add_child(fire)
+	var a := FarmFamily.new()
+	add_child(a)
+	a.setup_seated(c, 2, 11, 0.0, 0.85, 3.3)
+	var b := FarmFamily.new()
+	add_child(b)
+	b.setup_seated(c, 1, 13, PI * 0.85, 0.85, 3.3)
 
 
 func _spawn_families() -> void:
