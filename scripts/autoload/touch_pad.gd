@@ -23,6 +23,7 @@ var _mouse_pos := Vector2.ZERO
 var _release_at: Dictionary = {}  # button id -> time to release
 var _clock: float = 0.0
 var _last_scene_key: String = ""
+var _pad_mode: bool = false       # a gamepad is being used: hide the touch buttons (Android TV)
 
 
 static func wanted() -> bool:
@@ -118,6 +119,7 @@ func _process(delta: float) -> void:
 			for b: Dictionary in _buttons:
 				if b["id"] == id and not b["down"]:
 					_send_button(b, false)
+	_view.visible = not _pad_mode
 	_view.queue_redraw()
 
 
@@ -126,8 +128,14 @@ func _process(delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	if not enabled:
 		return
+	if event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > 0.5):
+		if not _pad_mode:
+			_pad_mode = true
+			_release_all()
+		return
 	var st := event as InputEventScreenTouch
 	if st != null:
+		_pad_mode = false
 		if st.pressed:
 			_touch_down(st.index, st.position)
 		else:

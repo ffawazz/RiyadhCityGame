@@ -93,7 +93,7 @@ func _on_input(event: InputEvent) -> void:
 	if d >= 1 and d <= 3:
 		_food = d - 1
 		return
-	if event.is_action_pressed("steer_right") and not (event is InputEventMouse):
+	if event.is_action_pressed("swap_item"):      # TAB / Q / LB cycles the food
 		_food = (_food + 1) % 3
 		return
 	if not is_confirm(event):
@@ -165,7 +165,7 @@ func _draw_game() -> void:
 	_Art.draw_sister(self, Game.character_id, Vector2(130, size.y - 15), 0.8)
 	_Art.draw_animal(self, Game.animal_id, Vector2(size.x - 100, size.y - 20), 0.6, -1.0)
 	text(Vector2(24, 40), "Time %d    Points %d" % [maxi(0, ceili(_time_left)), _score], 30, Color.html("1d3557"))
-	text(Vector2(24, 72), "1 2 3 = pick food  -  click a goat to feed it", 20, Color.html("1d3557"))
+	text(Vector2(24, 72), "1 2 3 / LB = pick food  -  click or press A on a goat to feed it", 20, Color.html("1d3557"))
 	if _flash_t > 0.0:
 		text_c(Vector2(size.x * 0.5, 120), _flash, 38, Color.html("1d3557"))
 	draw_pointer()

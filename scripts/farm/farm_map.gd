@@ -30,8 +30,7 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	var key := event as InputEventKey
-	if key != null and key.pressed and not key.echo and key.keycode == KEY_M:
+	if event.is_action_pressed("map"):
 		big = not big
 
 

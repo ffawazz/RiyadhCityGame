@@ -25,6 +25,8 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 
 **Farm life:** families (Mom in colourful clothes, no abaya) walk around the farm and **sit round a campfire to keep warm**. The Baqalah snack run is now easy: slow traffic, 3 lanes, no penalty for a bump.
 
+**Android TV + Xbox controller:** pair the controller in the TV's Bluetooth settings, then install `RiyadhKids-debug.apk` (copy it to a USB stick, use "Send files to TV", or `adb connect <tv-ip>:5555` then `adb install RiyadhKids-debug.apk`). The game appears in the TV launcher and hides the touch buttons while a controller is used. Controls: **RT / LT** gas and brake (or the left stick), **left stick / D-pad** steer and walk, **A** handbrake / jump / OK, **B** back, **X** enter a place, **Y** camera, **RB** turbo, **LB** swap weapon / food, **View/Back** farm map, **right stick** look around the car. In the point-and-click games the stick moves the cursor and A clicks.
+
 **Run it the safe way (Windows):** `.\run_game.ps1` imports new scripts first, starts the game and writes any errors to `game.log` - send me that file if something breaks.
 
 **Try it:** Play → pick a sister → drive to the supermarket circle (NW) → press E.

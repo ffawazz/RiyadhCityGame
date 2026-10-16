@@ -538,7 +538,9 @@ func _build_hud() -> void:
 	_prompt_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 	var help := _hud_label(hud, 16)
-	if TouchPad.enabled:
+	if not Input.get_connected_joypads().is_empty():
+		help.text = "Controller: RT gas  LT brake  left stick steer  A handbrake = drift  RB TURBO  X enter a place  Y camera  B menu\nRight stick = look around the car"
+	elif TouchPad.enabled:
 		help.text = "Touch: < > steer   GAS / BRAKE   TURBO   DRIFT = handbrake   E = enter a place   CAM = change view   ESC = menu"
 	else:
 		help.text = "W/S gas & brake  A/D steer  SPACE handbrake = drift!  SHIFT = TURBO  E enter  Esc menu\nCamera: C view  |  hold right mouse + drag, or J L I K  = orbit  |  wheel or U O = zoom  |  hold B = look back  |  V = lock view"

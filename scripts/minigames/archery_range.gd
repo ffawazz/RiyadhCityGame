@@ -202,9 +202,15 @@ func _on_input(event: InputEvent) -> void:
 	if mm != null:
 		_aim = Vector2(clampf(mm.position.x, 260.0, size.x - 20.0), clampf(mm.position.y, 120.0, size.y - 60.0))
 		return
+	if event.is_action_pressed("swap_item"):      # TAB / Q / LB
+		_use_bow = not _use_bow
+		_drawing = false
+		_draw_t = 0.0
+		get_viewport().set_input_as_handled()
+		return
 	var key := event as InputEventKey
 	if key != null and key.pressed and not key.echo:
-		if key.keycode == KEY_TAB or key.keycode == KEY_Q or key.keycode == KEY_1 or key.keycode == KEY_2:
+		if key.keycode == KEY_1 or key.keycode == KEY_2:
 			if key.keycode == KEY_1:
 				_use_bow = true
 			elif key.keycode == KEY_2:
@@ -282,7 +288,7 @@ func _draw_game() -> void:
 		_draw_bottle(b)
 	# HUD
 	text(Vector2(24, 40), "Time %d   Points %d   Hits %d/%d" % [maxi(0, ceili(_time_left)), _score, _hits, _shots], 28, Color.html("023e8a"))
-	text(Vector2(24, 72), "TAB / 1 / 2 switch weapon:  %s" % ("BOW (hold to draw, release to shoot)" if _use_bow else "AIR RIFLE (click)"), 20, Color.html("023e8a"))
+	text(Vector2(24, 72), "TAB / LB / 1 / 2 switch weapon:  %s" % ("BOW (hold to draw, release to shoot)" if _use_bow else "AIR RIFLE (click)"), 20, Color.html("023e8a"))
 	_draw_wind()
 	if _flash_t > 0.0:
 		text_c(Vector2(size.x * 0.5, 120), _flash, 30, Color.html("3d2c00"))

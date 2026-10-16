@@ -326,10 +326,21 @@ func load_game() -> bool:
 # --- Input map (registered in code so the project file stays tiny) ------
 
 func _register_inputs() -> void:
-	_add_action("accelerate", [KEY_W, KEY_UP], [], [[JOY_AXIS_TRIGGER_RIGHT, 1.0]])
-	_add_action("brake", [KEY_S, KEY_DOWN], [], [[JOY_AXIS_TRIGGER_LEFT, 1.0]])
-	_add_action("steer_left", [KEY_A, KEY_LEFT], [], [[JOY_AXIS_LEFT_X, -1.0]], 0.2)
-	_add_action("steer_right", [KEY_D, KEY_RIGHT], [], [[JOY_AXIS_LEFT_X, 1.0]], 0.2)
+	# gamepad (Xbox / PlayStation / TV remote pads): triggers drive, the left stick and the D-pad
+	# move in every direction (so walking and the mini-games work without a keyboard)
+	_add_action("accelerate", [KEY_W, KEY_UP], [JOY_BUTTON_DPAD_UP], [[JOY_AXIS_TRIGGER_RIGHT, 1.0], [JOY_AXIS_LEFT_Y, -1.0]], 0.3)
+	_add_action("brake", [KEY_S, KEY_DOWN], [JOY_BUTTON_DPAD_DOWN], [[JOY_AXIS_TRIGGER_LEFT, 1.0], [JOY_AXIS_LEFT_Y, 1.0]], 0.3)
+	_add_action("steer_left", [KEY_A, KEY_LEFT], [JOY_BUTTON_DPAD_LEFT], [[JOY_AXIS_LEFT_X, -1.0]], 0.2)
+	_add_action("steer_right", [KEY_D, KEY_RIGHT], [JOY_BUTTON_DPAD_RIGHT], [[JOY_AXIS_LEFT_X, 1.0]], 0.2)
+	_add_action("swap_item", [KEY_TAB, KEY_Q], [JOY_BUTTON_LEFT_SHOULDER])
+	_add_action("map", [KEY_M], [JOY_BUTTON_BACK])
+	# menus: A = OK, B = back, D-pad / left stick move the focus (the built-in UI actions)
+	_add_action("ui_accept", [], [JOY_BUTTON_A])
+	_add_action("ui_cancel", [], [JOY_BUTTON_B])
+	_add_action("ui_up", [], [JOY_BUTTON_DPAD_UP], [[JOY_AXIS_LEFT_Y, -1.0]])
+	_add_action("ui_down", [], [JOY_BUTTON_DPAD_DOWN], [[JOY_AXIS_LEFT_Y, 1.0]])
+	_add_action("ui_left", [], [JOY_BUTTON_DPAD_LEFT], [[JOY_AXIS_LEFT_X, -1.0]])
+	_add_action("ui_right", [], [JOY_BUTTON_DPAD_RIGHT], [[JOY_AXIS_LEFT_X, 1.0]])
 	_add_action("handbrake", [KEY_SPACE], [JOY_BUTTON_A])
 	_add_action("camera", [KEY_C], [JOY_BUTTON_Y])
 	_add_action("turbo", [KEY_SHIFT], [JOY_BUTTON_RIGHT_SHOULDER])
