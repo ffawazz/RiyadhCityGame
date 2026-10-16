@@ -1,4 +1,5 @@
 extends Control
+const ControllerTest := preload("res://scripts/menus/controller_test.gd")
 ## Title screen: Play / Continue / Quit over a simple Riyadh skyline.
 
 
@@ -14,6 +15,7 @@ func _ready() -> void:
 	col.add_child(play)
 	if Game.has_save():
 		col.add_child(UIKit.button("Continue", _on_continue))
+	col.add_child(UIKit.button("Controller test", func() -> void: add_child(ControllerTest.new())))
 	col.add_child(UIKit.button("Quit", func() -> void: get_tree().quit()))
 	play.grab_focus()
 	var build := UIKit.label("Build %s" % Game.BUILD_ID, 16, Color(1, 1, 1, 0.7))
