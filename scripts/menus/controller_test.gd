@@ -52,6 +52,12 @@ func _process(_d: float) -> void:
 				Input.get_joy_axis(id, JOY_AXIS_RIGHT_X), Input.get_joy_axis(id, JOY_AXIS_RIGHT_Y),
 				Input.get_joy_axis(id, JOY_AXIS_TRIGGER_LEFT), Input.get_joy_axis(id, JOY_AXIS_TRIGGER_RIGHT),
 				Input.get_action_strength("accelerate"), Input.get_action_strength("brake")]
+	var down: Array[String] = []
+	for a in ["ui_accept", "ui_cancel", "ui_up", "ui_down", "handbrake", "interact", "camera", "turbo", "swap_item", "map", "accelerate", "brake", "steer_left", "steer_right"]:
+		if Input.is_action_pressed(a):
+			down.append(a)
+	t += "\nGame actions pressed right now: %s" % (", ".join(down) if not down.is_empty() else "(none)")
+	t += "\nInput mode: %s   button names: %s" % [Game.input_mode, Hints.style()]
 	t += "\nEvent counts:  keys %d   pad buttons %d   pad axes %d   touch %d   other %d" % [
 			_counts["key"], _counts["pad button"], _counts["pad axis"], _counts["touch"], _counts["other"]]
 	_list.text = t
