@@ -14,6 +14,7 @@ func _check(cond: bool, msg: String) -> void:
 
 func _axis(axis: int, value: float) -> void:
 	var e := InputEventJoypadMotion.new()
+	e.device = 3          # a TV often reports the pad as device 1-3, not 0
 	e.axis = axis as JoyAxis
 	e.axis_value = value
 	Input.parse_input_event(e)
@@ -22,6 +23,7 @@ func _axis(axis: int, value: float) -> void:
 
 func _button(btn: int, down: bool) -> void:
 	var e := InputEventJoypadButton.new()
+	e.device = 3
 	e.button_index = btn as JoyButton
 	e.pressed = down
 	Input.parse_input_event(e)

@@ -354,15 +354,18 @@ func _add_action(action: String, keys: Array, buttons: Array = [], axes: Array =
 	for key in keys:
 		var ev := InputEventKey.new()
 		ev.physical_keycode = key as Key
+		ev.device = -1                      # any device
 		InputMap.action_add_event(action, ev)
 	for button in buttons:
 		var jb := InputEventJoypadButton.new()
 		jb.button_index = button as JoyButton
+		jb.device = -1                      # any controller (on a TV the pad is often not device 0)
 		InputMap.action_add_event(action, jb)
 	for axis in axes:
 		var jm := InputEventJoypadMotion.new()
 		jm.axis = axis[0] as JoyAxis
 		jm.axis_value = axis[1]
+		jm.device = -1
 		InputMap.action_add_event(action, jm)
 
 
