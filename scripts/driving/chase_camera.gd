@@ -117,7 +117,10 @@ func _read_keys(delta: float) -> void:
 
 func _place(delta: float) -> void:
 	var speed := target.velocity.length()
-	fov = lerpf(fov, 66.0 + 20.0 * clampf(speed / Car.MAX_SPEED, 0.0, 1.0), 1.0 - exp(-4.0 * delta))
+	var fov_want := 66.0 + 20.0 * clampf(speed / Car.MAX_SPEED, 0.0, 1.0) + (12.0 if target.turbo_on else 0.0)
+	fov = lerpf(fov, fov_want, 1.0 - exp(-4.0 * delta))
+	if target.turbo_on:
+		_shake = maxf(_shake, 0.12)
 	var car_pos := target.global_position
 	var shake_offset := Vector3(randf_range(-1, 1), randf_range(-1, 1), 0.0) * _shake * 0.35
 	_shake = maxf(0.0, _shake - delta * 2.0)

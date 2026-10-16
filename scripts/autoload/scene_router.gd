@@ -12,6 +12,7 @@ const SCENES := {
 	"home_hub": "res://scenes/home_hub.tscn",
 	"animal_select": "res://scenes/animal_select.tscn",
 	"farm_world": "res://scenes/farm_world.tscn",
+	"kharrarah_park": "res://scenes/kharrarah_park.tscn",
 	"minigame": "res://scenes/minigame_host.tscn",
 }
 

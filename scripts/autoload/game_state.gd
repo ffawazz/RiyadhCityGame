@@ -5,7 +5,7 @@ extends Node
 signal character_changed(id: String)
 
 ## Shown in the main menu and the driving HUD so you can tell which version you are running.
-const BUILD_ID := "b7 - drift, crash damage, orbit camera"
+const BUILD_ID := "b8 - turbo, big slope, Kharrarah park"
 
 const SAVE_PATH := "user://riyadh_kids_save.cfg"
 
@@ -92,6 +92,30 @@ const LOCATIONS := {
 		"title": "Baqalah Pit Stop", "title_ar": "بقالة",
 		"action": "minigame", "target": "baqalah_snacks", "return": "farm_highway", "color": "ff9f1c",
 	},
+	"kharrarah": {
+		"title": "Al-Kharrarah Park", "title_ar": "منتزه الخرارة",
+		"action": "scene", "target": "kharrarah_park", "color": "52b788",
+	},
+	"kharrarah_exit": {
+		"title": "Back to the road", "title_ar": "العودة للطريق",
+		"action": "scene", "target": "farm_highway", "spawn": "kharrarah", "color": "adb5bd",
+	},
+	"park_bbq": {
+		"title": "Camping & BBQ", "title_ar": "التخييم والشواء",
+		"action": "minigame", "target": "park_bbq", "return": "kharrarah_park", "color": "ff7b00",
+	},
+	"park_kite": {
+		"title": "Fly a Kite", "title_ar": "الطائرات الورقية",
+		"action": "minigame", "target": "park_kite", "return": "kharrarah_park", "color": "9b5de5",
+	},
+	"park_swim": {
+		"title": "Seasonal Lake Swim", "title_ar": "السباحة في البحيرة",
+		"action": "minigame", "target": "park_swim", "return": "kharrarah_park", "color": "48cae4",
+	},
+	"park_bike": {
+		"title": "Bike Ride", "title_ar": "ركوب الدراجات",
+		"action": "minigame", "target": "park_bike", "return": "kharrarah_park", "color": "fb5607",
+	},
 	"farm_exit": {
 		"title": "Drive Home", "title_ar": "العودة للبيت",
 		"action": "scene", "target": "city", "spawn": "home", "color": "ffd166",
@@ -170,6 +194,7 @@ const DAILY_GOALS := [
 	{"label": "Living Room", "ids": ["living_room"], "need": 1},
 	{"label": "Kitchen", "ids": ["kitchen"], "need": 1},
 	{"label": "Backyard", "ids": ["backyard"], "need": 1},
+	{"label": "Al-Kharrarah Park", "ids": ["park_bbq", "park_kite", "park_swim", "park_bike"], "need": 1},
 	{"label": "Farm Fun", "ids": ["farm_swim", "farm_pingpong", "farm_cornhole", "farm_basketball", "farm_archery", "farm_swing", "farm_moto", "farm_lemons", "farm_goatfeed", "farm_eggs", "farm_sand", "farm_trampoline", "farm_slide"], "need": 1},
 ]
 
@@ -311,6 +336,7 @@ func _register_inputs() -> void:
 	_add_action("steer_right", [KEY_D, KEY_RIGHT], [], [[JOY_AXIS_LEFT_X, 1.0]], 0.2)
 	_add_action("handbrake", [KEY_SPACE], [JOY_BUTTON_A])
 	_add_action("camera", [KEY_C], [JOY_BUTTON_Y])
+	_add_action("turbo", [KEY_SHIFT], [JOY_BUTTON_RIGHT_SHOULDER])
 	_add_action("interact", [KEY_E, KEY_ENTER, KEY_KP_ENTER], [JOY_BUTTON_X])
 
 

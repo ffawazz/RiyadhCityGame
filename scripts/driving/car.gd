@@ -39,6 +39,11 @@ var yaw_rate: float = 0.0          # rad/s, positive = turning right
 var body_slip: float = 0.0         # angle between where the nose points and where the car travels
 var steer_pull: float = 0.0        # crash damage makes the car pull to one side
 var damage: CarDamage
+var damage_enabled: bool = true     # false on the farm road: bumps never hurt
+var traction: float = 1.0           # < 1 on loose sand
+var turbo_charge: float = 1.0       # 0..1, refills when the turbo is off
+var turbo_on: bool = false
+var _flames: Array[MeshInstance3D] = []
 var skid: SkidMarks
 var _smoke_tyres: CPUParticles3D
 var _slope_pitch: float = 0.0
@@ -50,6 +55,10 @@ signal drift_banked(points: int)
 var drift_time: float = 0.0
 var drift_points: float = 0.0
 const GRAVITY := 12.0
+const TURBO_ACCEL := 2.3
+const TURBO_TOP := 1.55
+const TURBO_DRAIN := 0.17
+const TURBO_RECHARGE := 0.11
 
 ## Saudi number plate (letters HXD). The Arabic row uses the Saudi plate letter
 ## equivalents (H = ه, X = ص, D = د). Change PLATE_NUMBER to your real digits.
@@ -162,7 +171,15 @@ func _physics_process(delta: float) -> void:
 		rear_grip *= 1.0 - 0.5 * brake                 # brake-slide: lift + brake into a corner
 	if throttle > 0.6 and absf(steer) > 0.55 and u > 8.0 and u < 38.0:
 		rear_grip *= 0.85                               # flat out with the wheel hard over: power slide
-	var top_speed := MAX_SPEED * perf
+	# TURBO (hold SHIFT / TURBO button): stronger pull and a higher top speed while the charge lasts
+	var wants_turbo := Input.is_action_pressed("turbo") and throttle > 0.0 and turbo_charge > 0.02 and u > -1.0
+	turbo_on = wants_turbo
+	if turbo_on:
+		turbo_charge = maxf(0.0, turbo_charge - TURBO_DRAIN * delta)
+	else:
+		turbo_charge = minf(1.0, turbo_charge + TURBO_RECHARGE * delta)
+	var top_speed := MAX_SPEED * perf * (TURBO_TOP if turbo_on else 1.0)
+	var accel_now := ACCEL * perf * (TURBO_ACCEL if turbo_on else 1.0)
 	var heading_change := 0.0
 	var steps := 3
 	var h := delta / float(steps)
@@ -170,11 +187,11 @@ func _physics_process(delta: float) -> void:
 		var u_eff := maxf(absf(u), 2.5)
 		var alpha_f := atan2(v + FRONT_ARM * yaw_rate, u_eff) - delta_f
 		var alpha_r := atan2(v - REAR_ARM * yaw_rate, u_eff)
-		var f_front := _tyre_force(alpha_f, GRIP_FRONT)
-		var f_rear := _tyre_force(alpha_r, rear_grip)
+		var f_front := _tyre_force(alpha_f, GRIP_FRONT * traction)
+		var f_rear := _tyre_force(alpha_r, rear_grip * traction)
 		var ax := 0.0
 		if throttle > 0.0:
-			ax += ACCEL * perf * throttle * clampf(1.0 - u / top_speed, 0.0, 1.0)
+			ax += accel_now * throttle * clampf(1.0 - u / top_speed, 0.0, 1.0)
 		if brake > 0.0:
 			ax -= (BRAKE * brake) if u > 0.5 else (7.0 * brake if u > -MAX_REVERSE else 0.0)
 		if hand and u > 0.5:
@@ -182,6 +199,7 @@ func _physics_process(delta: float) -> void:
 		var coasting := throttle == 0.0 and brake == 0.0
 		var drag := 0.0007 * u * absf(u) + (1.5 if u > 0.2 else (-1.5 if u < -0.2 else 0.0)) * (1.0 if coasting else 0.3)
 		ax -= drag + absf(f_front) * sin(absf(delta_f)) * 0.5      # cornering scrub
+		ax -= 13.0 * clampf(_slope_pitch, -0.45, 0.45)               # gravity: hills slow you down, slopes pull you
 		var dv := f_front * cos(delta_f) + f_rear - u * yaw_rate
 		var dr := (FRONT_ARM * f_front * cos(delta_f) - REAR_ARM * f_rear) / YAW_INERTIA
 		u += (ax + v * yaw_rate) * h
@@ -220,6 +238,7 @@ func _physics_process(delta: float) -> void:
 	_track_drift(delta)
 	_update_engine(forward_speed)
 	_update_visuals(delta, throttle, brake)
+	_update_turbo_fx()
 
 
 ## Lateral tyre force for a slip angle: linear up to the grip limit, then it falls off, so a
@@ -253,9 +272,10 @@ func _check_crash(pre_velocity: Vector3) -> void:
 		yaw_rate *= 0.5
 	if worst > 3.0 and damage != null:
 		var local_n := global_transform.basis.inverse() * worst_normal
-		damage.take_hit(local_n, worst)
 		yaw_rate += clampf(local_n.x * worst * -0.05, -1.2, 1.2)     # the car gets knocked round
-		crashed.emit(worst)
+		if damage_enabled:
+			damage.take_hit(local_n, worst)
+			crashed.emit(worst)
 
 
 ## Drift score: slide sideways at speed for a while and you bank points.
@@ -310,6 +330,33 @@ func _update_height(delta: float) -> void:
 		var front: float = ground_fn.call(position.x + fwd.x * 1.6, position.z + fwd.z * 1.6)
 		var rear: float = ground_fn.call(position.x - fwd.x * 1.6, position.z - fwd.z * 1.6)
 		_slope_pitch = lerpf(_slope_pitch, atan2(front - rear, 3.2), 0.4)
+
+
+func _update_turbo_fx() -> void:
+	if _flames.is_empty():
+		var mat := StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.albedo_color = Color(1.0, 0.55, 0.1, 0.9)
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		for sx: float in [-0.55, 0.55]:
+			var cone := MeshInstance3D.new()
+			var cm := CylinderMesh.new()
+			cm.top_radius = 0.0
+			cm.bottom_radius = 0.22
+			cm.height = 1.8
+			cm.radial_segments = 8
+			cone.mesh = cm
+			cone.rotation_degrees.x = 90.0        # point backwards (+Z)
+			cone.position = Vector3(sx, 0.5, 3.4)
+			cone.material_override = mat
+			cone.visible = false
+			cone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			add_child(cone)
+			_flames.append(cone)
+	for f in _flames:
+		f.visible = turbo_on
+		if turbo_on:
+			f.scale = Vector3(1.0, randf_range(0.7, 1.5), 1.0)
 
 
 func _update_engine(fs: float) -> void:

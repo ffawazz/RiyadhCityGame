@@ -143,6 +143,21 @@ func _ready() -> void:
 		if not sl.running:
 			break
 	_check(not sl.running, "slide: the ride ends with a splash (%d points)" % sl._points)
+	# park: bbq + kite
+	var bq: MiniGameBase = await _mk("park_bbq")
+	for i in 400:
+		bq._tick(0.02)
+		for slot: Dictionary in bq._slots:
+			if float(slot["age"]) > 4.6 and float(slot["age"]) < 5.4:
+				bq.pointer = slot["pos"]
+				bq._on_input(_accept())
+	_check(bq._score > 0, "bbq: taking kebabs off at the right moment scores (%d)" % bq._score)
+	var kt: MiniGameBase = await _mk("park_kite")
+	for i in 600:
+		for r: Dictionary in kt._rings:
+			kt.pointer = r["pos"]
+		kt._tick(0.02)
+	_check(kt._score > 0, "kite: steering through rings scores (%d)" % kt._score)
 	print("FAILURES: ", fails)
 	get_tree().quit(fails)
 

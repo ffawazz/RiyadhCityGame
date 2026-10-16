@@ -97,6 +97,26 @@ const ENTRIES := {
 		"instructions": "Whee! Slide down the big slide. A / D change lane, SPACE jumps over the toys. Collect the stars and splash into the pool at the bottom!",
 		"script": "res://scripts/minigames/slide_game.gd",
 	},
+	"park_bbq": {
+		"title": "Camping BBQ",
+		"instructions": "Dad lit the coals! Click each kebab when it turns golden brown - not too raw and not burnt! Perfect = 2 points.\nMove the mouse (or WASD / drag your finger) and click, tap or press SPACE.",
+		"script": "res://scripts/minigames/bbq_grill.gd",
+	},
+	"park_kite": {
+		"title": "Kite Flying",
+		"instructions": "The desert wind is perfect for kites! Steer your kite through the golden rings and dodge the birds.\nMove the mouse (or WASD / drag your finger) to steer the kite.",
+		"script": "res://scripts/minigames/kite_flying.gd",
+	},
+	"park_swim": {
+		"title": "Lake Swim",
+		"instructions": "The rain made a lake in the desert! Swim across it collecting rings.",
+		"script": "res://scripts/minigames/pool_splash.gd",
+	},
+	"park_bike": {
+		"title": "Sand Bike Ride",
+		"instructions": "Ride across the dunes! Hold D / Right for gas, A / Left to brake. In the air tilt with W / S to land on both wheels. Grab the stars and jump the dunes!",
+		"script": "res://scripts/minigames/motorbike_game.gd",
+	},
 	"farm_basketball": {
 		"title": "Farm Basketball",
 		"instructions": "Time your jump and shoot hoops.",

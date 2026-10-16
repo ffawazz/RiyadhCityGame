@@ -81,6 +81,7 @@ func _layout() -> void:
 			_btn("gas", "GAS", Vector2(1150, 560), 78, ["accelerate"])
 			_btn("brake", "BRAKE", Vector2(985, 625), 56, ["brake"])
 			_btn("drift", "DRIFT", Vector2(985, 470), 56, ["handbrake"])
+			_btn("turbo", "TURBO", Vector2(830, 610), 52, ["turbo"])
 			_btn("e", "E", Vector2(1150, 395), 46, ["interact"])
 			_btn("cam", "CAM", Vector2(1015, 350), 40, ["camera"])
 		"walk":

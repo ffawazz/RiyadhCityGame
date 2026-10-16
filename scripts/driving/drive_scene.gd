@@ -20,6 +20,8 @@ var fog_density: float = 0.0035
 var fog_color: Color = Color.html("efd9b4")
 var ground_color: Color = Color.html("c4ad7e")
 var palm_collisions: bool = true
+var damage_enabled: bool = true     # farm-side scenes switch this off
+var traction: float = 1.0           # < 1 = loose sand
 var flat_skip: Array = []     # road rects NOT drawn flat (the scene draws them itself)
 var auto_markings: bool = true # centre dashes + edge lines for every road rect
 var markings: Array = []       # custom lane lines, see add_marking()
@@ -37,6 +39,8 @@ var _goals_label: Label
 var _prompt_label: Label
 var _speed_label: Label
 var _health_label: Label
+var _turbo_bar: ProgressBar
+var _turbo_label: Label
 var _drift_label: Label
 var _build_label: Label
 var _toast_label: Label
@@ -183,6 +187,10 @@ func _process(_delta: float) -> void:
 	else:
 		_drift_label.visible = false
 	var health := car.damage.health()
+	_health_label.visible = damage_enabled
+	_turbo_bar.value = car.turbo_charge * 100.0
+	_turbo_label.text = "TURBO!" if car.turbo_on else ("TURBO  (hold Shift)" if car.turbo_charge > 0.99 else "TURBO charging...")
+	_turbo_label.add_theme_color_override("font_color", Color.html("ff9f1c") if car.turbo_on else Color.WHITE)
 	_health_label.text = "Car: %d%%" % int(health)
 	_health_label.add_theme_color_override("font_color", Color.html("80ed99") if health > 60.0 else (Color.html("ffd166") if health > 30.0 else Color.html("ff5d5d")))
 	_toast_t = maxf(0.0, _toast_t - get_process_delta_time())
@@ -442,7 +450,11 @@ func _spawn_zones() -> void:
 func _spawn_car() -> void:
 	var spawn: Dictionary = spawns.get(Game.spawn_id, default_spawn)
 	var pos: Vector2 = spawn["pos"]
+	if not damage_enabled:
+		Game.repair_car()           # Dad fixes the car before the trip: no damage on the farm side
 	car = Car.new()
+	car.damage_enabled = damage_enabled
+	car.traction = traction
 	car.ground_fn = ground_height
 	car.position = Vector3(pos.x, ground_height(pos.x, pos.y), pos.y)
 	car.rotation.y = spawn["yaw"]
@@ -486,6 +498,23 @@ func _build_hud() -> void:
 	_health_label.position.y -= 150.0
 	_health_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 
+	_turbo_label = _hud_label(hud, 18)
+	_turbo_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
+	_turbo_label.position.y -= 218.0
+	_turbo_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_turbo_bar = ProgressBar.new()
+	_turbo_bar.show_percentage = false
+	_turbo_bar.custom_minimum_size = Vector2(190, 12)
+	_turbo_bar.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
+	_turbo_bar.position = Vector2(-210.0, -186.0)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color.html("ff9f1c")
+	_turbo_bar.add_theme_stylebox_override("fill", fill)
+	var back := StyleBoxFlat.new()
+	back.bg_color = Color(0, 0, 0, 0.45)
+	_turbo_bar.add_theme_stylebox_override("background", back)
+	hud.add_child(_turbo_bar)
+
 	_drift_label = _hud_label(hud, 44)
 	_drift_label.add_theme_color_override("font_color", Color.html("ffd166"))
 	_drift_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 170)
@@ -510,9 +539,9 @@ func _build_hud() -> void:
 
 	var help := _hud_label(hud, 16)
 	if TouchPad.enabled:
-		help.text = "Touch: < > steer   GAS / BRAKE   DRIFT = handbrake   E = enter a place   CAM = change view   ESC = menu"
+		help.text = "Touch: < > steer   GAS / BRAKE   TURBO   DRIFT = handbrake   E = enter a place   CAM = change view   ESC = menu"
 	else:
-		help.text = "W/S gas & brake  A/D steer  SPACE handbrake = drift!  E enter  Esc menu\nCamera: C view  |  hold right mouse + drag, or J L I K  = orbit  |  wheel or U O = zoom  |  hold B = look back  |  V = lock view"
+		help.text = "W/S gas & brake  A/D steer  SPACE handbrake = drift!  SHIFT = TURBO  E enter  Esc menu\nCamera: C view  |  hold right mouse + drag, or J L I K  = orbit  |  wheel or U O = zoom  |  hold B = look back  |  V = lock view"
 	help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
 	help.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
