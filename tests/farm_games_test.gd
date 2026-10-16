@@ -83,6 +83,66 @@ func _ready() -> void:
 		m._tick(1.0 / 60.0)
 	Input.action_release("steer_right")
 	_check(m._x > 1500.0, "moto: the bike drives (%.0f px, %d stars)" % [m._x, m._stars])
+	# lemons: pick a ripe one
+	var lm: MiniGameBase = await _mk("farm_lemons")
+	var ripe: Dictionary = {}
+	for l: Dictionary in lm._lemons:
+		if l["kind"] != "green":
+			ripe = l
+			break
+	lm.pointer = ripe["pos"]
+	lm._on_input(_accept())
+	_check(lm._score > 0, "lemons: picking a ripe lemon scores (%d)" % lm._score)
+	# goats: right food
+	var gf: MiniGameBase = await _mk("farm_goatfeed")
+	var goat: Dictionary = gf._goats[0]
+	gf._food = int(goat["want"])
+	gf.pointer = Vector2(goat["x"], float(goat["y"]) - 50.0)
+	gf._on_input(_accept())
+	for i in 60:
+		gf._tick(0.02)
+	_check(gf._score == 2, "goats: the right food makes a goat happy (%d)" % gf._score)
+	# eggs
+	var eg: MiniGameBase = await _mk("farm_eggs")
+	for i in 80:
+		eg._tick(0.02)
+	var egg_nest: Dictionary = {}
+	for n: Dictionary in eg._nests:
+		if float(n["egg"]) >= 0.0:
+			egg_nest = n
+			break
+	if egg_nest.is_empty():
+		_check(false, "eggs: an egg appeared")
+	else:
+		eg.pointer = (egg_nest["pos"] as Vector2) + Vector2(0, -16)
+		eg._on_input(_accept())
+		_check(eg._score > 0, "eggs: collecting an egg scores (%d)" % eg._score)
+	# sand
+	var sd: MiniGameBase = await _mk("farm_sand")
+	for k: Vector2i in sd._cells:
+		if sd._cells[k]["kind"] == "treasure":
+			sd.pointer = sd.ORIGIN + Vector2(k) * sd.CELL + Vector2(40, 40)
+			sd._on_input(_accept())
+			break
+	_check(sd._found == 1, "sand: digging up a treasure counts")
+	# trampoline: bounce with perfect timing and flip
+	var tr: MiniGameBase = await _mk("farm_trampoline")
+	Input.action_press("steer_right")
+	for i in 1500:
+		if tr._h < 120.0 and tr._vy < 0.0 and tr._press_t <= 0.0:
+			tr._on_input(_accept())
+		tr._tick(1.0 / 60.0)
+		if not tr.running:
+			break
+	Input.action_release("steer_right")
+	_check(tr._score > 0, "trampoline: timed bounces and flips score (%d points, %d flips)" % [tr._score, tr._flips])
+	# slide: ride it out
+	var sl: MiniGameBase = await _mk("farm_slide")
+	for i in 1800:
+		sl._tick(1.0 / 60.0)
+		if not sl.running:
+			break
+	_check(not sl.running, "slide: the ride ends with a splash (%d points)" % sl._points)
 	print("FAILURES: ", fails)
 	get_tree().quit(fails)
 

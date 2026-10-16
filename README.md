@@ -19,6 +19,8 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 
 **Android:** the game has on-screen touch controls (a joystick or steer/GAS/BRAKE/DRIFT buttons, tap-to-click menus, finger-drag to aim and to orbit the camera) that appear automatically on a phone/tablet - and on a PC when you start it with `--touch`. A debug **APK** is built by GitHub on every push: open the repo's **Actions** tab -> latest "Android APK" run -> download `RiyadhKids-android-apk`, copy `RiyadhKids-debug.apk` to the phone and open it (allow "install unknown apps"). To build it yourself: `.\build_android.ps1 -Godot <path to Godot 4.3 exe>` (needs the export templates, Android Studio's SDK and JDK 17). Landscape only; best on a recent phone (arm64).
 
+**More farm fun:** pick **Mishmish the cat** or **Qunfuz the hedgehog** at the gate, alongside Shatoor, Hassan and the chicken. New games: **Lemon Picking** (a grove), **Feed the Goats** (goat pen), **Collect Eggs** (hen house), **Sand Digging** (hot/cold treasure hunt), **Trampoline** (time your bounces, then flip) and **Slide** (next to the swings). Cats dash around, hedgehogs waddle (and curl up when you come close), goats and hens live in their pens.
+
 **Run it the safe way (Windows):** `.\run_game.ps1` imports new scripts first, starts the game and writes any errors to `game.log` - send me that file if something breaks.
 
 **Try it:** Play → pick a sister → drive to the supermarket circle (NW) → press E.
@@ -29,7 +31,7 @@ visit Tamimi Supermarket, School, Home (3 zones) and take the road trip to the A
 * `godot --headless res://tests/handling_test.tscn` checks handbrake turns, cornering and crash damage numbers.
 * `res://tests/drive_shots.tscn`, `crash_shots.tscn`, `scene_tour.tscn` take screenshots (need a real renderer, e.g. xvfb).
 
-All thirteen mini-games are playable greybox versions. `res://tests/farm_games_test.tscn` checks the new farm games headless.
+All nineteen mini-games are playable greybox versions. `res://tests/farm_games_test.tscn` checks the new farm games headless.
 
 **Make it yours:** the licence plate digits are `PLATE_NUMBER` / `PLATE_NUMBER_AR` at the top of `scripts/driving/car.gd`; clothes and skin colours of the family are in `_build_interior_and_people()`.
 Fonts: `assets/fonts/NotoSansArabic.ttf` (SIL Open Font License, see `OFL-NotoSansArabic.txt`).

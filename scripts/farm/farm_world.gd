@@ -13,6 +13,12 @@ const STATIONS := {
 	"farm_archery": Vector2(125, 112),
 	"farm_swing": Vector2(48, 104),
 	"farm_moto": Vector2(160, 100),
+	"farm_lemons": Vector2(60, 28),
+	"farm_goatfeed": Vector2(105, 18),
+	"farm_eggs": Vector2(166, 74),
+	"farm_sand": Vector2(28, 122),
+	"farm_trampoline": Vector2(68, 110),
+	"farm_slide": Vector2(32, 106),
 	"barn": Vector2(150, 40),
 	"farm_exit": Vector2(90, 126),
 }
@@ -25,6 +31,7 @@ var _active_zone: LocationZone
 var _prompt: Label
 var _palms: Array = []
 var families: Array[FarmFamily] = []
+var critters: Array[FarmCritter] = []
 var _swing_nodes: Array = []
 var _map: FarmMap
 var _t: float = 0.0
@@ -43,6 +50,7 @@ func _ready() -> void:
 	_spawn_zones()
 	_spawn_animal()
 	_spawn_families()
+	_spawn_critters()
 	_build_hud()
 
 
@@ -200,6 +208,12 @@ func _build_stations() -> void:
 	_build_archery()
 	_build_swing()
 	_build_moto()
+	_build_lemons()
+	_build_goat_pen()
+	_build_coop()
+	_build_sandpit()
+	_build_trampoline()
+	_build_slide()
 	# --- the barn (change animal) ---
 	arch.solid(Rect2(134.0, 14.0, 34.0, 22.0), 9.0, Color.html("c9a66b"), 2)
 	arch.merlons(Rect2(134.0, 14.0, 34.0, 22.0), 9.0)
@@ -285,6 +299,162 @@ func _build_moto() -> void:
 	_cb(bike, Vector3(0.25, 0.3, 1.0), Vector3(0, 0.95, 0.0), Color.html("e63946"))
 	_cb(bike, Vector3(0.28, 0.12, 0.7), Vector3(0, 1.1, -0.35), Color.html("212529"))
 	_cb(bike, Vector3(0.5, 0.06, 0.06), Vector3(0, 1.3, 0.55), Color.html("212529"))
+
+
+func _build_lemons() -> void:
+	var c := Vector3(60.0, 0.0, 28.0)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 9
+	for i in 6:
+		var tp := c + Vector3(-9.0 + (i % 3) * 9.0, 0.0, -5.0 + (i / 3) * 10.0)
+		var trunk := MeshInstance3D.new()
+		var tm := CylinderMesh.new()
+		tm.top_radius = 0.25
+		tm.bottom_radius = 0.35
+		tm.height = 2.2
+		trunk.mesh = tm
+		trunk.position = tp + Vector3(0, 1.1, 0)
+		trunk.material_override = arch.flat(Color.html("7f5539"))
+		add_child(trunk)
+		var crown := MeshInstance3D.new()
+		var cm := SphereMesh.new()
+		cm.radius = 2.0
+		cm.height = 3.6
+		crown.mesh = cm
+		crown.position = tp + Vector3(0, 3.4, 0)
+		crown.material_override = arch.flat(Color.html("2d6a4f"))
+		add_child(crown)
+		for j in 7:
+			var a := rng.randf() * TAU
+			var lm := MeshInstance3D.new()
+			var sm := SphereMesh.new()
+			sm.radius = 0.28
+			sm.height = 0.56
+			lm.mesh = sm
+			lm.scale = Vector3(1.0, 0.8, 1.0)
+			lm.position = tp + Vector3(cos(a) * 1.8, 3.0 + rng.randf() * 1.4, sin(a) * 1.8)
+			lm.material_override = arch.flat(Color.html("ffe14d"))
+			add_child(lm)
+	arch.deco(c + Vector3(0, 0.9, 7.0), Vector3(1.6, 0.8, 1.0), Color.html("a47148"))        # lemon crate
+	arch.deco(c + Vector3(0, 1.4, 7.0), Vector3(1.4, 0.2, 0.8), Color.html("ffe14d"))
+
+
+func _build_goat_pen() -> void:
+	var c := Vector2(105.0, 18.0)
+	var half := Vector2(9.0, 6.0)
+	for sx: float in [-1.0, 1.0]:
+		arch.deco(Vector3(c.x + sx * half.x, 0.7, c.y), Vector3(0.25, 1.4, half.y * 2.0), Color.html("8b5e34"))
+	for sz: float in [-1.0, 1.0]:
+		arch.deco(Vector3(c.x, 0.7, c.y + sz * half.y), Vector3(half.x * 2.0, 1.4, 0.25), Color.html("8b5e34"))
+	arch.deco(Vector3(c.x, 0.04, c.y), Vector3(half.x * 2.0, 0.08, half.y * 2.0), Color.html("c9b27a"))   # straw floor
+	arch.deco(Vector3(c.x + 6.5, 1.0, c.y - 3.0), Vector3(2.4, 2.0, 1.6), Color.html("a47148"))            # trough
+	arch.deco(Vector3(c.x + 6.5, 1.95, c.y - 3.0), Vector3(2.2, 0.2, 1.4), Color.html("e0b84c"))           # hay in it
+
+
+func _build_coop() -> void:
+	var c := Vector3(172.0, 0.0, 66.0)
+	arch.deco(c + Vector3(0, 1.5, 0), Vector3(6.0, 3.0, 5.0), Color.html("b5651d"))
+	var roof := arch.deco(c + Vector3(0, 3.5, 0), Vector3(7.0, 0.5, 6.0), Color.html("8d0801"))
+	roof.rotation_degrees.z = 0.0
+	arch.deco(c + Vector3(-3.05, 1.2, 0), Vector3(0.1, 1.2, 1.2), Color.html("2b2d42"))             # little door
+	for i in 3:
+		arch.deco(c + Vector3(-3.05, 2.4, -1.5 + i * 1.5), Vector3(0.1, 0.4, 0.8), Color.html("ffe66d"))   # windows
+	# chicken run (fenced)
+	for sz: float in [-1.0, 1.0]:
+		arch.deco(Vector3(163.0, 0.5, c.z + sz * 6.0), Vector3(10.0, 1.0, 0.12), Color.html("8b5e34"))
+	arch.deco(Vector3(158.0, 0.5, c.z), Vector3(0.12, 1.0, 12.0), Color.html("8b5e34"))
+
+
+func _build_sandpit() -> void:
+	var c := Vector3(28.0, 0.0, 122.0)
+	arch.deco(c + Vector3(0, 0.15, 0), Vector3(10.0, 0.3, 10.0), Color.html("8b5e34"))
+	arch.deco(c + Vector3(0, 0.32, 0), Vector3(9.2, 0.1, 9.2), Color.html("f0d58c"))
+	# a sandcastle, bucket and spade
+	arch.deco(c + Vector3(-1.5, 0.7, -1.0), Vector3(2.0, 0.8, 2.0), Color.html("e9c46a"))
+	for sx: float in [-1.0, 1.0]:
+		for sz: float in [-1.0, 1.0]:
+			arch.deco(c + Vector3(-1.5 + sx * 0.8, 1.3, -1.0 + sz * 0.8), Vector3(0.5, 0.7, 0.5), Color.html("e9c46a"))
+	arch.deco(c + Vector3(-1.5, 1.6, -1.0), Vector3(0.1, 1.0, 0.1), Color.html("e63946"))
+	arch.deco(c + Vector3(2.0, 0.55, 1.5), Vector3(0.6, 0.6, 0.6), Color.html("ff5d8f"))           # bucket
+	arch.deco(c + Vector3(3.0, 0.4, 0.8), Vector3(0.15, 0.1, 1.0), Color.html("3a86ff"), 25.0)     # spade
+
+
+func _build_trampoline() -> void:
+	var c := Vector3(68.0, 0.0, 110.0)
+	var mat := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 3.0
+	cm.bottom_radius = 3.0
+	cm.height = 0.2
+	cm.radial_segments = 20
+	mat.mesh = cm
+	mat.position = c + Vector3(0, 1.0, 0)
+	mat.material_override = arch.flat(Color.html("1d3557"))
+	add_child(mat)
+	var rim := MeshInstance3D.new()
+	var rm := TorusMesh.new()
+	rm.inner_radius = 2.95
+	rm.outer_radius = 3.35
+	rm.rings = 20
+	rm.ring_segments = 8
+	rim.mesh = rm
+	rim.position = c + Vector3(0, 1.05, 0)
+	rim.material_override = arch.flat(Color.html("e63946"))
+	add_child(rim)
+	for i in 6:
+		var a := float(i) / 6.0 * TAU
+		arch.deco(c + Vector3(cos(a) * 3.1, 0.5, sin(a) * 3.1), Vector3(0.15, 1.0, 0.15), Color.html("495057"))
+	# safety net poles
+	for i in 8:
+		var a := float(i) / 8.0 * TAU
+		arch.deco(c + Vector3(cos(a) * 3.6, 1.9, sin(a) * 3.6), Vector3(0.1, 3.6, 0.1), Color.html("ffbe0b"))
+
+
+func _build_slide() -> void:
+	var c := Vector3(32.0, 0.0, 100.0)
+	arch.deco(c + Vector3(0, 2.6, -1.5), Vector3(2.4, 0.2, 2.4), Color.html("f94144"))                 # platform
+	for sx: float in [-1.0, 1.0]:
+		for sz: float in [-1.0, 1.0]:
+			arch.deco(c + Vector3(sx * 1.1, 1.3, -1.5 + sz * 1.1), Vector3(0.14, 2.6, 0.14), Color.html("495057"))
+	# ladder on the back
+	for i in 6:
+		arch.deco(c + Vector3(0, 0.45 + i * 0.42, -3.0), Vector3(1.6, 0.1, 0.1), Color.html("ffbe0b"))
+	for sx: float in [-0.8, 0.8]:
+		arch.deco(c + Vector3(sx, 1.4, -3.0), Vector3(0.1, 2.9, 0.1), Color.html("ffbe0b"))
+	# the slide itself: a tilted blue ramp with side rails
+	var ramp := arch.deco(c + Vector3(0, 1.45, 2.4), Vector3(1.6, 0.14, 5.6), Color.html("48cae4"))
+	ramp.rotation_degrees.x = 24.0
+	for sx: float in [-0.85, 0.85]:
+		var rail := arch.deco(c + Vector3(sx, 1.7, 2.4), Vector3(0.1, 0.35, 5.6), Color.html("f94144"))
+		rail.rotation_degrees.x = 24.0
+
+
+func _spawn_critters() -> void:
+	var avoid: Array[Rect2] = [
+		Rect2(18, 46, 34, 24), Rect2(86, 31, 8, 8), Rect2(133, 12, 36, 24), Rect2(76, 90, 28, 20),
+		Rect2(24, 94, 16, 16), Rect2(44, 92, 8, 14), Rect2(20, 96, 8, 10), Rect2(66, 107, 6, 6), Rect2(22, 117, 12, 10)]
+	var whole := Rect2(6, 6, SIZE.x - 12, SIZE.y - 22)
+	for i in 5:
+		var cat := FarmCritter.new()
+		cat.setup("cat", whole, 100 + i, avoid)
+		add_child(cat)
+		critters.append(cat)
+	var spots: Array[Rect2] = [Rect2(8, 8, 40, 36), Rect2(110, 76, 30, 20), Rect2(50, 56, 24, 24), Rect2(120, 110, 30, 20), Rect2(70, 40, 12, 18)]
+	for i in 6:
+		var hog := FarmCritter.new()
+		hog.setup("hedgehog", spots[i % spots.size()], 200 + i, avoid)
+		add_child(hog)
+		critters.append(hog)
+	for i in 3:
+		var goat := FarmCritter.new()
+		goat.setup("goat", Rect2(97, 14, 16, 8), 300 + i)
+		add_child(goat)
+		critters.append(goat)
+	for i in 4:
+		var hen := FarmCritter.new()
+		hen.setup("hen", Rect2(159, 62, 9, 9), 400 + i)
+		add_child(hen)
+		critters.append(hen)
 
 
 func _spawn_families() -> void:

@@ -32,6 +32,40 @@ func _ready() -> void:
 			"Start!", _begin)
 
 
+# --- shared pointer (mouse / finger / WASD) for "point and pick" games --------
+
+var pointer: Vector2 = Vector2(640, 360)
+const POINTER_SPEED := 480.0
+
+
+## Call from _on_input: follows the mouse / finger.
+func pointer_event(event: InputEvent) -> void:
+	var mm := event as InputEventMouseMotion
+	if mm != null:
+		pointer = mm.position
+		return
+	var mb := event as InputEventMouseButton
+	if mb != null:
+		pointer = mb.position
+
+
+## Call from _tick: WASD / stick moves the pointer too.
+func pointer_move(delta: float) -> void:
+	var kb := Input.get_vector("steer_left", "steer_right", "accelerate", "brake")
+	if kb != Vector2.ZERO:
+		pointer += kb * POINTER_SPEED * delta
+		pointer = pointer.clamp(Vector2(10, 10), size - Vector2(10, 10))
+
+
+func draw_pointer(color: Color = Color(1, 1, 1, 0.95)) -> void:
+	draw_arc(pointer, 20.0, 0, TAU, 24, Color.BLACK, 6.0)
+	draw_arc(pointer, 20.0, 0, TAU, 24, color, 3.0)
+	draw_line(pointer + Vector2(-30, 0), pointer + Vector2(-10, 0), color, 3.0)
+	draw_line(pointer + Vector2(30, 0), pointer + Vector2(10, 0), color, 3.0)
+	draw_line(pointer + Vector2(0, -30), pointer + Vector2(0, -10), color, 3.0)
+	draw_line(pointer + Vector2(0, 30), pointer + Vector2(0, 10), color, 3.0)
+
+
 # --- hooks for concrete games ---------------------------------------------
 
 func _on_start() -> void:

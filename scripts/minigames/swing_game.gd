@@ -87,7 +87,7 @@ func _tick(delta: float) -> void:
 			if _result_t <= 0.0:
 				_jump_no += 1
 				if _jump_no >= JUMPS:
-					complete(maxi(1, stars_from(_best, 6.0, 9.0, 12.0)))
+					complete(maxi(1, stars_from(_best, 8.0, 13.0, 18.0)))
 				else:
 					_new_swing()
 

@@ -25,6 +25,12 @@ func setup(animal_id: String) -> void:
 		"chicken":
 			_speed = 8.2
 			_jump = 7.0
+		"cat":
+			_speed = 8.8
+			_jump = 7.5 * float(Game.ANIMALS["cat"]["mods"]["jump"])
+		"hedgehog":
+			_speed = 5.8
+			_jump = 6.2
 		_:
 			_speed = 6.6
 			_jump = 7.0
@@ -46,6 +52,10 @@ func _ready() -> void:
 			_build_goat()
 		"chicken":
 			_build_chicken()
+		"cat":
+			_build_cat()
+		"hedgehog":
+			_build_hedgehog()
 		_:
 			_build_duck()
 
@@ -191,3 +201,43 @@ func _build_chicken() -> void:
 	_eyes(head, -0.16, 0.07, 0.1)
 	_leg(Vector3(-0.15, 0.42, 0.05), Vector3(0.06, 0.42, 0.06), "ff9f1c")
 	_leg(Vector3(0.15, 0.42, 0.05), Vector3(0.06, 0.42, 0.06), "ff9f1c")
+
+
+func _build_cat() -> void:
+	_box(_model, Vector3(0.42, 0.42, 1.0), Vector3(0, 0.62, 0.0), "f4a259")
+	for lx: float in [-0.14, 0.14]:
+		for lz: float in [-0.35, 0.35]:
+			_leg(Vector3(lx, 0.4, lz), Vector3(0.11, 0.4, 0.11), "c9772e")
+	var head := Node3D.new()
+	head.position = Vector3(0, 0.98, -0.62)
+	_model.add_child(head)
+	_box(head, Vector3(0.4, 0.34, 0.34), Vector3.ZERO, "f4a259")
+	_box(head, Vector3(0.1, 0.07, 0.05), Vector3(0, -0.05, -0.19), "e56b6f")             # nose
+	for sx: float in [-1.0, 1.0]:
+		_box(head, Vector3(0.1, 0.16, 0.06), Vector3(sx * 0.14, 0.24, 0.0), "c9772e")     # ears
+		_box(head, Vector3(0.3, 0.012, 0.012), Vector3(sx * 0.28, -0.04, -0.17), "ffffff")  # whiskers
+	_eyes(head, -0.17, 0.05, 0.1)
+	_box(_model, Vector3(0.1, 0.1, 0.8), Vector3(0, 1.0, 0.8), "f4a259", Vector3(-45, 0, 0))   # tail up
+	for i in 3:
+		_box(_model, Vector3(0.44, 0.05, 0.1), Vector3(0, 0.82, -0.2 + i * 0.25), "c9772e")      # stripes
+
+
+func _build_hedgehog() -> void:
+	_ball(_model, 0.55, Vector3(0, 0.55, 0.1), "6b4f3a", Vector3(1.0, 0.85, 1.2))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 21
+	for i in 26:   # quills
+		var a := rng.randf() * TAU
+		var e := rng.randf_range(0.2, 1.1)
+		var pos := Vector3(sin(a) * 0.42, 0.55 + e * 0.3, 0.1 + cos(a) * 0.55)
+		_box(_model, Vector3(0.07, 0.3, 0.07), pos + Vector3(0, 0.15, 0), "8a6a50", Vector3(sin(a) * 25.0, 0, -cos(a) * 25.0))
+	var head := Node3D.new()
+	head.position = Vector3(0, 0.45, -0.68)
+	_model.add_child(head)
+	_ball(head, 0.22, Vector3.ZERO, "e7c9a5", Vector3(1.0, 0.9, 1.2))
+	_ball(head, 0.07, Vector3(0, -0.04, -0.28), "151515")                                 # nose
+	_eyes(head, -0.18, 0.08, 0.1)
+	_leg(Vector3(-0.22, 0.2, -0.3), Vector3(0.12, 0.2, 0.12), "e7c9a5")
+	_leg(Vector3(0.22, 0.2, -0.3), Vector3(0.12, 0.2, 0.12), "e7c9a5")
+	_leg(Vector3(-0.22, 0.2, 0.4), Vector3(0.12, 0.2, 0.12), "e7c9a5")
+	_leg(Vector3(0.22, 0.2, 0.4), Vector3(0.12, 0.2, 0.12), "e7c9a5")

@@ -10,6 +10,12 @@ const ICONS := {
 	"farm_archery": ["Archery", Color("9b5de5")],
 	"farm_swing": ["Swing", Color("f15bb5")],
 	"farm_moto": ["Motorbike", Color("fb5607")],
+	"farm_lemons": ["Lemons", Color("ffe14d")],
+	"farm_goatfeed": ["Feed Goats", Color("c8b6ff")],
+	"farm_eggs": ["Eggs", Color("fff1c9")],
+	"farm_sand": ["Sand", Color("e9c46a")],
+	"farm_trampoline": ["Trampoline", Color("ff5d8f")],
+	"farm_slide": ["Slide", Color("4cc9f0")],
 	"barn": ["Barn", Color("a98467")],
 	"farm_exit": ["Exit / Car", Color("ffd166")],
 }

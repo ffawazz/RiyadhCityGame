@@ -153,7 +153,7 @@ func _traffic_and_bumps_test() -> int:
 ## The farm: the animal walks when WASD is pressed.
 func _farm_test() -> int:
 	var fails := 0
-	for animal in ["duck", "goat", "chicken"]:
+	for animal in ["duck", "goat", "chicken", "cat", "hedgehog"]:
 		Game.select_animal(animal)
 		Game.spawn_id = "farm_gate"
 		var farm := (load("res://scenes/farm_world.tscn") as PackedScene).instantiate()

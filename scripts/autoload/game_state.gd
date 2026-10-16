@@ -52,6 +52,16 @@ const ANIMALS := {
 		"blurb": "Quick reflexes! Great at Ping Pong.",
 		"mods": {"reflex": 1.3},
 	},
+	"cat": {
+		"name": "Mishmish", "name_ar": "مشمش", "species": "Cat",
+		"blurb": "Quick paws! Great at catching, jumping and the trampoline.",
+		"mods": {"reflex": 1.2, "jump": 1.15, "grab": 1.15},
+	},
+	"hedgehog": {
+		"name": "Qunfuz", "name_ar": "قنفذ", "species": "Hedgehog",
+		"blurb": "Spiky and clever! Finds sand treasure and picks lemons for longer.",
+		"mods": {"grab": 1.3, "dig": 1.3},
+	},
 }
 
 ## Every place the car can enter. "action": "scene" swaps scene,
@@ -114,6 +124,30 @@ const LOCATIONS := {
 		"title": "Motorbike Track", "title_ar": "دباب",
 		"action": "minigame", "target": "farm_moto", "return": "farm_world", "color": "fb5607",
 	},
+	"farm_lemons": {
+		"title": "Lemon Picking", "title_ar": "قطف الليمون",
+		"action": "minigame", "target": "farm_lemons", "return": "farm_world", "color": "ffe14d",
+	},
+	"farm_goatfeed": {
+		"title": "Feed the Goats", "title_ar": "إطعام الماعز",
+		"action": "minigame", "target": "farm_goatfeed", "return": "farm_world", "color": "c8b6ff",
+	},
+	"farm_eggs": {
+		"title": "Collect Eggs", "title_ar": "جمع البيض",
+		"action": "minigame", "target": "farm_eggs", "return": "farm_world", "color": "fff1c9",
+	},
+	"farm_sand": {
+		"title": "Sand Digging", "title_ar": "اللعب بالرمل",
+		"action": "minigame", "target": "farm_sand", "return": "farm_world", "color": "e9c46a",
+	},
+	"farm_trampoline": {
+		"title": "Trampoline", "title_ar": "ترامبولين",
+		"action": "minigame", "target": "farm_trampoline", "return": "farm_world", "color": "ff5d8f",
+	},
+	"farm_slide": {
+		"title": "Slide", "title_ar": "زحليقة",
+		"action": "minigame", "target": "farm_slide", "return": "farm_world", "color": "4cc9f0",
+	},
 	"barn": {
 		"title": "Barn: Change Animal", "title_ar": "الحظيرة",
 		"action": "scene", "target": "animal_select", "color": "a98467",
@@ -136,7 +170,7 @@ const DAILY_GOALS := [
 	{"label": "Living Room", "ids": ["living_room"], "need": 1},
 	{"label": "Kitchen", "ids": ["kitchen"], "need": 1},
 	{"label": "Backyard", "ids": ["backyard"], "need": 1},
-	{"label": "Farm Fun", "ids": ["farm_swim", "farm_pingpong", "farm_cornhole", "farm_basketball", "farm_archery", "farm_swing", "farm_moto"], "need": 1},
+	{"label": "Farm Fun", "ids": ["farm_swim", "farm_pingpong", "farm_cornhole", "farm_basketball", "farm_archery", "farm_swing", "farm_moto", "farm_lemons", "farm_goatfeed", "farm_eggs", "farm_sand", "farm_trampoline", "farm_slide"], "need": 1},
 ]
 
 var character_id: String = "daniah"

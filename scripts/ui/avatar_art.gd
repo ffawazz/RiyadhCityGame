@@ -65,6 +65,10 @@ static func draw_animal(ci: CanvasItem, kind: String, feet: Vector2, scale: floa
 			goat(ci, 0.0, 0.0)
 		"chicken":
 			chicken(ci, 0.0, 0.0)
+		"cat":
+			cat(ci, 0.0, 0.0)
+		"hedgehog":
+			hedgehog(ci, 0.0, 0.0)
 		_:
 			duck(ci, 0.0, 0.0)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -109,3 +113,48 @@ static func chicken(ci: CanvasItem, cx: float, base_y: float) -> void:
 		Color.html("ff9f1c"))
 	ci.draw_circle(Vector2(cx + 38, base_y - 126), 3.5, Color.BLACK)
 	ci.draw_circle(Vector2(cx + 42, base_y - 104), 6.0, Color.html("e63946")) # wattle
+
+
+static func cat(ci: CanvasItem, cx: float, base_y: float) -> void:
+	var fur := Color.html("f4a259")
+	var dark := Color.html("c9772e")
+	# tail curling up behind
+	ci.draw_arc(Vector2(cx - 50, base_y - 40), 34.0, PI * 0.5, PI * 1.6, 16, fur, 12.0)
+	ci.draw_rect(Rect2(cx - 38, base_y - 22, 14, 22), dark)
+	ci.draw_rect(Rect2(cx + 22, base_y - 22, 14, 22), dark)
+	ci.draw_circle(Vector2(cx, base_y - 55), 44.0, fur)
+	ci.draw_circle(Vector2(cx - 6, base_y - 50), 24.0, fur.lightened(0.25))        # belly
+	ci.draw_circle(Vector2(cx + 28, base_y - 112), 30.0, fur)                        # head
+	for sx in [-1.0, 1.0]:
+		ci.draw_colored_polygon(PackedVector2Array([
+			Vector2(cx + 28 + sx * 26, base_y - 128), Vector2(cx + 28 + sx * 12, base_y - 148), Vector2(cx + 28 + sx * 2, base_y - 130)]), dark)
+	ci.draw_circle(Vector2(cx + 38, base_y - 116), 4.5, Color.BLACK)
+	ci.draw_circle(Vector2(cx + 20, base_y - 116), 4.5, Color.BLACK)
+	ci.draw_circle(Vector2(cx + 30, base_y - 106), 3.5, Color.html("e56b6f"))       # nose
+	for sy in [-4.0, 2.0]:
+		ci.draw_line(Vector2(cx + 40, base_y - 104 + sy), Vector2(cx + 62, base_y - 108 + sy * 2.0), Color.WHITE, 1.5)   # whiskers
+		ci.draw_line(Vector2(cx + 18, base_y - 104 + sy), Vector2(cx - 4, base_y - 108 + sy * 2.0), Color.WHITE, 1.5)
+	for i in 3:
+		ci.draw_line(Vector2(cx - 18 + i * 14, base_y - 82), Vector2(cx - 12 + i * 14, base_y - 56), dark, 5.0)   # stripes
+
+
+static func hedgehog(ci: CanvasItem, cx: float, base_y: float) -> void:
+	var quill := Color.html("6b4f3a")
+	var skin := Color.html("e7c9a5")
+	ci.draw_rect(Rect2(cx - 22, base_y - 12, 12, 12), skin)
+	ci.draw_rect(Rect2(cx + 12, base_y - 12, 12, 12), skin)
+	# spiky back: many small triangles around a dome
+	for i in 15:
+		var a := PI * (0.95 + 1.1 * float(i) / 14.0)
+		var c := Vector2(cx - 6, base_y - 38)
+		var p1 := c + Vector2(cos(a - 0.12), sin(a - 0.12)) * 44.0
+		var p2 := c + Vector2(cos(a + 0.12), sin(a + 0.12)) * 44.0
+		var tip := c + Vector2(cos(a), sin(a)) * 66.0
+		ci.draw_colored_polygon(PackedVector2Array([p1, tip, p2]), quill if i % 2 == 0 else quill.lightened(0.2))
+	ci.draw_circle(Vector2(cx - 6, base_y - 38), 46.0, quill.darkened(0.1))
+	ci.draw_circle(Vector2(cx + 34, base_y - 34), 24.0, skin)                       # face
+	ci.draw_colored_polygon(PackedVector2Array([
+		Vector2(cx + 50, base_y - 38), Vector2(cx + 74, base_y - 30), Vector2(cx + 50, base_y - 24)]), skin.darkened(0.1))
+	ci.draw_circle(Vector2(cx + 74, base_y - 30), 4.5, Color.BLACK)                 # nose
+	ci.draw_circle(Vector2(cx + 42, base_y - 42), 4.0, Color.BLACK)                 # eye
+	ci.draw_circle(Vector2(cx + 24, base_y - 50), 8.0, skin.darkened(0.15))        # ear

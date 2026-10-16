@@ -11,7 +11,7 @@ func _ready() -> void:
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 40)
+	row.add_theme_constant_override("separation", 14)
 	col.add_child(row)
 
 	var first_button: Button = null
@@ -21,12 +21,12 @@ func _ready() -> void:
 		card.add_theme_constant_override("separation", 8)
 		var portrait := Portrait.new()
 		portrait.kind = id
-		portrait.min_size = Vector2(200, 230)
+		portrait.min_size = Vector2(190, 200)
 		card.add_child(portrait)
-		card.add_child(UIKit.label("%s  %s" % [data["name"], data["name_ar"]], 30))
+		card.add_child(UIKit.label("%s  %s" % [data["name"], data["name_ar"]], 26))
 		card.add_child(UIKit.label("the %s" % data["species"], 20, Color.html("fff3b0")))
-		card.add_child(UIKit.label(data["blurb"], 18, Color.html("f1f1f1"), 260.0))
-		var pick := UIKit.button("Be %s" % data["name"], _on_pick.bind(id), Vector2(260, 54))
+		card.add_child(UIKit.label(data["blurb"], 16, Color.html("f1f1f1"), 220.0))
+		var pick := UIKit.button("Be %s" % data["name"], _on_pick.bind(id), Vector2(220, 54))
 		card.add_child(pick)
 		row.add_child(card)
 		if first_button == null:

@@ -67,6 +67,36 @@ const ENTRIES := {
 		"instructions": "Race the dirt track! Hold D / Right for gas, A / Left to brake. In the air tilt with W / S to land on both wheels. Grab the stars and jump the ramps!",
 		"script": "res://scripts/minigames/motorbike_game.gd",
 	},
+	"farm_lemons": {
+		"title": "Lemon Picking",
+		"instructions": "Pick the ripe YELLOW lemons from the tree before time runs out! Golden lemons are worth 3. Leave the green ones, they are not ready!\nMove the mouse (or WASD / drag your finger) and click, tap or press SPACE to pick.",
+		"script": "res://scripts/minigames/lemon_picking.gd",
+	},
+	"farm_goatfeed": {
+		"title": "Feed the Goats",
+		"instructions": "The goats are hungry! Each one shows what it wants. Pick a food with 1 / 2 / 3 (or the arrow keys), aim with the mouse and click or tap a goat to feed it.\nA happy goat gives you points - the wrong food makes it sad.",
+		"script": "res://scripts/minigames/feeding_goats.gd",
+	},
+	"farm_eggs": {
+		"title": "Collect the Eggs",
+		"instructions": "The hens are laying! Click or tap the eggs to collect them before they hatch into chicks. Golden eggs are worth extra.\nMove the mouse (or WASD / drag your finger) and click, tap or press SPACE.",
+		"script": "res://scripts/minigames/egg_picking.gd",
+	},
+	"farm_sand": {
+		"title": "Sand Digging",
+		"instructions": "Treasure is buried in the sand! Dig with your shovel - the sand colour tells you how close you are: red = hot, blue = cold. Find 5 treasures, but watch out for pinchy crabs!\nMove the mouse (or WASD / drag your finger) and click, tap or press SPACE to dig.",
+		"script": "res://scripts/minigames/sand_dig.gd",
+	},
+	"farm_trampoline": {
+		"title": "Trampoline",
+		"instructions": "Press SPACE just as you land to bounce higher. When you are high, hold A or D to do a flip - land upright to score! W tucks in for faster flips.",
+		"script": "res://scripts/minigames/trampoline_game.gd",
+	},
+	"farm_slide": {
+		"title": "Slide Down!",
+		"instructions": "Whee! Slide down the big slide. A / D change lane, SPACE jumps over the toys. Collect the stars and splash into the pool at the bottom!",
+		"script": "res://scripts/minigames/slide_game.gd",
+	},
 	"farm_basketball": {
 		"title": "Farm Basketball",
 		"instructions": "Time your jump and shoot hoops.",

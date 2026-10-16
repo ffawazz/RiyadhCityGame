@@ -30,6 +30,10 @@ func _draw() -> void:
 			_Art.goat(self, cx, base_y)
 		"chicken":
 			_Art.chicken(self, cx, base_y)
+		"cat":
+			_Art.cat(self, cx, base_y)
+		"hedgehog":
+			_Art.hedgehog(self, cx, base_y)
 
 
 func _draw_girl(cx: float, base_y: float, h: float, dress: Color, hair: Color, who: String) -> void:
