@@ -39,6 +39,7 @@ var yaw_rate: float = 0.0          # rad/s, positive = turning right
 var body_slip: float = 0.0         # angle between where the nose points and where the car travels
 var steer_pull: float = 0.0        # crash damage makes the car pull to one side
 var damage: CarDamage
+var is_prop: bool = false          # a parked decoration (e.g. at the farm gate): ignores all input
 var damage_enabled: bool = true     # false on the farm road: bumps never hurt
 var traction: float = 1.0           # < 1 on loose sand
 var turbo_charge: float = 1.0       # 0..1, refills when the turbo is off
@@ -138,6 +139,8 @@ func repair() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if is_prop:
+		return
 	var throttle := Input.get_action_strength("accelerate")
 	var brake := Input.get_action_strength("brake")
 	var hand := Input.is_action_pressed("handbrake")

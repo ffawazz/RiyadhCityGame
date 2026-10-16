@@ -169,6 +169,25 @@ func _farm_test() -> int:
 			fails += 1
 		else:
 			print("ok farm: the ", animal, " walked ", snappedf(farm.animal.position.distance_to(start), 0.1), " m")
+		# the parked family car is only scenery: it must stay put while the animal walks
+		var parked: Car = null
+		for node in farm.get_children():
+			if node is Car:
+				parked = node
+		if parked == null:
+			printerr("FAIL: no parked car found at the farm gate")
+			fails += 1
+		else:
+			var parked_start := parked.position
+			Input.action_press("accelerate")
+			Input.action_press("steer_left")
+			for i in 60:
+				await get_tree().physics_frame
+			Input.action_release("accelerate")
+			Input.action_release("steer_left")
+			if parked.position.distance_to(parked_start) > 0.01:
+				printerr("FAIL: the parked car moved by itself at the farm (", parked.position.distance_to(parked_start), " m)")
+				fails += 1
 		# walking into a glowing circle must offer the game (this was broken: zones only saw cars)
 		for station in FarmWorld.STATIONS:
 			var pos: Vector2 = FarmWorld.STATIONS[station]
