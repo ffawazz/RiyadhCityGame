@@ -59,5 +59,22 @@ func _ready() -> void:
 	_check(Input.is_action_pressed("map"), "Back/View = map")
 	await _button(JOY_BUTTON_BACK, false)
 	_check(TouchPad.enabled and not TouchPad._view.visible, "touch buttons hide while a gamepad is used")
+	# a TV remote (key presses) also hides the touch buttons; a real touch brings them back
+	TouchPad._pad_mode = false
+	var k := InputEventKey.new()
+	k.keycode = KEY_ENTER
+	k.pressed = true
+	Input.parse_input_event(k)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(not TouchPad._view.visible, "a TV remote / keyboard press hides the touch buttons")
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.position = Vector2(10, 10)
+	t.pressed = true
+	Input.parse_input_event(t)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(TouchPad._view.visible, "touching the screen shows the touch buttons again")
 	print("FAILURES: ", fails)
 	get_tree().quit(fails)
