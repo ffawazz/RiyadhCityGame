@@ -64,7 +64,7 @@ jobs:
           mkdir -p build
           godot --headless --path . --import || true
           export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/debug.keystore" GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android
-          cat "$HOME/.config/godot/editor_settings-${GODOT_VERSION}.tres"
+          grep -i android "$HOME/.config/godot/editor_settings-${GODOT_VERSION}.tres" || true
           ls "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/" | head -30
           godot --headless --verbose --path . --export-debug "Android" build/RiyadhKids-debug.apk
           ls -l build
