@@ -65,7 +65,7 @@ func _process(delta: float) -> void:
 	cam.global_position = cam.global_position.lerp(want, 1.0 - exp(-5.0 * delta))
 	cam.look_at(target + Vector3(0.0, 1.5, 0.0))
 	if _active_zone:
-		_prompt.text = "Press E:  %s" % _active_zone.title
+		_prompt.text = "Press %s:  %s" % [Hints.btn("interact"), _active_zone.title]
 		if Input.is_action_just_pressed("interact"):
 			Router.enter_location(_active_zone.location_id)
 	else:
@@ -616,7 +616,7 @@ func _build_hud() -> void:
 	info.text = "%s is %s the %s  -  Al-Muzahimiyah Farm" % [Game.character()["name"], Game.animal()["name"], Game.animal()["species"]]
 	info.position = Vector2(16, 10)
 	var help := _label(hud, 18)
-	help.text = "Controller: left stick walk   A jump   X play   Back = big map   Walk into a glowing circle to play a game!" if not Input.get_connected_joypads().is_empty() else "Joystick walk   JUMP   E play   MAP big map   Walk into a glowing circle to play a game!" if TouchPad.enabled else "WASD walk   SPACE jump   E play   M big map   Walk into a glowing circle to play a game!   Esc menu"
+	help.text = Hints.farm_help()
 	help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
 	help.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_map = FarmMap.new()

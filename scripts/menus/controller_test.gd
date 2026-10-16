@@ -5,6 +5,7 @@ extends ColorRect
 var _list: Label
 var _log: Label
 var _lines: Array[String] = []
+var _style_btn: Button
 var _counts := {"key": 0, "pad button": 0, "pad axis": 0, "touch": 0, "other": 0}
 
 
@@ -20,9 +21,23 @@ func _ready() -> void:
 	_log = UIKit.label("", 20, Color.WHITE)
 	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(_log)
+	_style_btn = UIKit.button("", _cycle_style, Vector2(520, 56))
+	box.add_child(_style_btn)
+	_refresh_style()
 	var close := UIKit.button("Close (or press Esc)", queue_free, Vector2(320, 56))
 	box.add_child(close)
 	close.grab_focus()
+
+
+func _cycle_style() -> void:
+	Game.pad_style_pref = {"auto": "ps", "ps": "xbox", "xbox": "auto"}[Game.pad_style_pref]
+	Game.save_settings()
+	_refresh_style()
+
+
+func _refresh_style() -> void:
+	var label := {"auto": "Auto  (detected: %s)" % ("PlayStation" if Hints.pad_style() == "ps" else "Xbox"), "ps": "PlayStation", "xbox": "Xbox"}
+	_style_btn.text = "Button names: %s   (press to change)" % label[Game.pad_style_pref]
 
 
 func _process(_d: float) -> void:
@@ -30,6 +45,13 @@ func _process(_d: float) -> void:
 	var t := "Gamepads seen by the game: %d" % pads.size()
 	for id in pads:
 		t += "\n   #%d  %s" % [id, Input.get_joy_name(id)]
+	if not pads.is_empty():
+		var id: int = pads[0]
+		t += "\n   sticks L(%.2f, %.2f)  R(%.2f, %.2f)   L2 %.2f  R2 %.2f   ->  gas %.2f  brake %.2f" % [
+				Input.get_joy_axis(id, JOY_AXIS_LEFT_X), Input.get_joy_axis(id, JOY_AXIS_LEFT_Y),
+				Input.get_joy_axis(id, JOY_AXIS_RIGHT_X), Input.get_joy_axis(id, JOY_AXIS_RIGHT_Y),
+				Input.get_joy_axis(id, JOY_AXIS_TRIGGER_LEFT), Input.get_joy_axis(id, JOY_AXIS_TRIGGER_RIGHT),
+				Input.get_action_strength("accelerate"), Input.get_action_strength("brake")]
 	t += "\nEvent counts:  keys %d   pad buttons %d   pad axes %d   touch %d   other %d" % [
 			_counts["key"], _counts["pad button"], _counts["pad axis"], _counts["touch"], _counts["other"]]
 	_list.text = t

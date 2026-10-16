@@ -206,10 +206,34 @@ var minigame_return: String = "city" # Router scene key to go back to
 var spawn_id: String = "home"        # where the car appears when a driving scene loads
 
 
+## "kbd", "pad" or "touch": what the player is using right now (drives the on-screen button names).
+var input_mode: String = "kbd"
+var pad_style_pref: String = "auto"     # "auto", "ps" or "xbox" (chosen in the Controller test screen)
+var _last_pad_msec: int = 0
+
+
 func _ready() -> void:
 	_register_inputs()
 	_install_arabic_font()
 	load_settings()
+	if not Input.get_connected_joypads().is_empty():
+		input_mode = "pad"
+	elif OS.has_feature("android") or OS.has_feature("ios"):
+		input_mode = "touch"
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > 0.6):
+		input_mode = "pad"
+		_last_pad_msec = Time.get_ticks_msec()
+	elif event is InputEventScreenTouch:
+		input_mode = "touch"
+	elif event is InputEventKey and (event as InputEventKey).pressed:
+		# arrows / Enter / Esc also come from a pad's D-pad or a TV remote: only real typing counts
+		var k := (event as InputEventKey).keycode
+		var typing := (k >= KEY_A and k <= KEY_Z) or (k >= KEY_0 and k <= KEY_9) or k == KEY_SPACE or k == KEY_TAB or k == KEY_SHIFT
+		if typing and Time.get_ticks_msec() - _last_pad_msec > 1500:
+			input_mode = "kbd"
 
 
 # --- Characters ---------------------------------------------------------
@@ -286,6 +310,7 @@ const SETTINGS_PATH := "user://riyadh_kids_settings.cfg"
 func save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("music", "custom_music", custom_music)
+	cfg.set_value("input", "pad_style", pad_style_pref)
 	cfg.save(SETTINGS_PATH)
 
 
@@ -293,6 +318,7 @@ func load_settings() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(SETTINGS_PATH) == OK:
 		custom_music = cfg.get_value("music", "custom_music", {})
+		pad_style_pref = cfg.get_value("input", "pad_style", "auto")
 
 
 func has_save() -> bool:
@@ -328,8 +354,8 @@ func load_game() -> bool:
 func _register_inputs() -> void:
 	# gamepad (Xbox / PlayStation / TV remote pads): triggers drive, the left stick and the D-pad
 	# move in every direction (so walking and the mini-games work without a keyboard)
-	_add_action("accelerate", [KEY_W, KEY_UP], [JOY_BUTTON_DPAD_UP], [[JOY_AXIS_TRIGGER_RIGHT, 1.0], [JOY_AXIS_LEFT_Y, -1.0]], 0.3)
-	_add_action("brake", [KEY_S, KEY_DOWN], [JOY_BUTTON_DPAD_DOWN], [[JOY_AXIS_TRIGGER_LEFT, 1.0], [JOY_AXIS_LEFT_Y, 1.0]], 0.3)
+	_add_action("accelerate", [KEY_W, KEY_UP], [JOY_BUTTON_DPAD_UP], [[JOY_AXIS_TRIGGER_RIGHT, 1.0], [JOY_AXIS_LEFT_Y, -1.0]], 0.1)
+	_add_action("brake", [KEY_S, KEY_DOWN], [JOY_BUTTON_DPAD_DOWN], [[JOY_AXIS_TRIGGER_LEFT, 1.0], [JOY_AXIS_LEFT_Y, 1.0]], 0.1)
 	_add_action("steer_left", [KEY_A, KEY_LEFT], [JOY_BUTTON_DPAD_LEFT], [[JOY_AXIS_LEFT_X, -1.0]], 0.2)
 	_add_action("steer_right", [KEY_D, KEY_RIGHT], [JOY_BUTTON_DPAD_RIGHT], [[JOY_AXIS_LEFT_X, 1.0]], 0.2)
 	_add_action("swap_item", [KEY_TAB, KEY_Q], [JOY_BUTTON_LEFT_SHOULDER])

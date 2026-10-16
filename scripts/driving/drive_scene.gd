@@ -171,7 +171,7 @@ func _process(_delta: float) -> void:
 	_info_label.text = "%s%s" % [Game.character()["name"], _extra_info()]
 	if _active_zone:
 		var slow := absf(car.forward_speed) <= ENTER_MAX_SPEED
-		_prompt_label.text = ("Press E to enter: %s" % _active_zone.title) if slow else ("Slow down to enter %s" % _active_zone.title)
+		_prompt_label.text = ("Press %s to enter: %s" % [Hints.btn("interact"), _active_zone.title]) if slow else ("Slow down to enter %s" % _active_zone.title)
 		if slow and Input.is_action_just_pressed("interact"):
 			var loc: Dictionary = Game.LOCATIONS[_active_zone.location_id]
 			if loc["action"] == "repair":
@@ -189,7 +189,7 @@ func _process(_delta: float) -> void:
 	var health := car.damage.health()
 	_health_label.visible = damage_enabled
 	_turbo_bar.value = car.turbo_charge * 100.0
-	_turbo_label.text = "TURBO!" if car.turbo_on else ("TURBO  (hold Shift)" if car.turbo_charge > 0.99 else "TURBO charging...")
+	_turbo_label.text = "TURBO!" if car.turbo_on else ("TURBO  (hold %s)" % Hints.btn("turbo") if car.turbo_charge > 0.99 else "TURBO charging...")
 	_turbo_label.add_theme_color_override("font_color", Color.html("ff9f1c") if car.turbo_on else Color.WHITE)
 	_health_label.text = "Car: %d%%" % int(health)
 	_health_label.add_theme_color_override("font_color", Color.html("80ed99") if health > 60.0 else (Color.html("ffd166") if health > 30.0 else Color.html("ff5d5d")))
@@ -538,12 +538,7 @@ func _build_hud() -> void:
 	_prompt_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 	var help := _hud_label(hud, 16)
-	if not Input.get_connected_joypads().is_empty():
-		help.text = "Controller: RT gas  LT brake  left stick steer  A handbrake = drift  RB TURBO  X enter a place  Y camera  B menu\nRight stick = look around the car"
-	elif TouchPad.enabled:
-		help.text = "Touch: < > steer   GAS / BRAKE   TURBO   DRIFT = handbrake   E = enter a place   CAM = change view   ESC = menu"
-	else:
-		help.text = "W/S gas & brake  A/D steer  SPACE handbrake = drift!  SHIFT = TURBO  E enter  Esc menu\nCamera: C view  |  hold right mouse + drag, or J L I K  = orbit  |  wheel or U O = zoom  |  hold B = look back  |  V = lock view"
+	help.text = Hints.drive_help()
 	help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
 	help.grow_vertical = Control.GROW_DIRECTION_BEGIN
 

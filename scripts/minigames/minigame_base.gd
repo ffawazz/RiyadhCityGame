@@ -28,7 +28,7 @@ func _ready() -> void:
 	_panel_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_panel_layer)
 	_show_panel(info.get("title", "Mini-game"),
-			"%s\n\nPlaying as %s\n(Esc to skip)" % [info.get("instructions", ""), Game.character()["name"]],
+			Hints.adapt("%s\n\nPlaying as %s\n(Esc to skip)" % [info.get("instructions", ""), Game.character()["name"]]),
 			"Start!", _begin)
 
 
@@ -137,11 +137,12 @@ func circle_hits_rect(c: Vector2, r: float, rect: Rect2) -> bool:
 
 
 func text(pos: Vector2, s: String, font_size: int = 24, color: Color = Color.WHITE) -> void:
-	draw_string(ThemeDB.fallback_font, pos, s, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+	draw_string(ThemeDB.fallback_font, pos, Hints.adapt(s), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 
 
 ## Text centred horizontally on pos.x (pos.y is the baseline).
 func text_c(pos: Vector2, s: String, font_size: int = 24, color: Color = Color.WHITE) -> void:
+	s = Hints.adapt(s)
 	var w := ThemeDB.fallback_font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	draw_string(ThemeDB.fallback_font, pos - Vector2(w * 0.5, 0), s, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 
@@ -204,9 +205,9 @@ func _show_panel(title: String, body: String, button_text: String, callback: Cal
 	col.add_theme_constant_override("separation", 16)
 	margin.add_child(col)
 	col.add_child(UIKit.label(title, 36))
-	col.add_child(UIKit.label(body, 22, Color.WHITE, 560.0))
+	col.add_child(UIKit.label(Hints.adapt(body), 22, Color.WHITE, 560.0))
 	_on_button = callback
-	var btn := UIKit.button(button_text + "   (E / Space)", callback, Vector2(300, 56))
+	var btn := UIKit.button(button_text + "   (%s)" % Hints.btn("confirm"), callback, Vector2(300, 56))
 	col.add_child(btn)
 	_panel_layer.add_child(panel)
 	btn.grab_focus()

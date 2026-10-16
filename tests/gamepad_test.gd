@@ -76,5 +76,15 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_check(TouchPad._view.visible, "touching the screen shows the touch buttons again")
+	# on-screen button names follow the device
+	Game.input_mode = "pad"
+	Game.pad_style_pref = "ps"
+	_check(Hints.btn("confirm") == "Cross" and Hints.btn("interact") == "Square", "PlayStation names: Cross / Square")
+	_check(Hints.adapt("Move the mouse (or WASD / drag your finger) and click, tap or press SPACE to pick.") == "Move with the left stick and press Cross to pick.", "instructions are rewritten for a PlayStation pad")
+	Game.pad_style_pref = "xbox"
+	_check(Hints.btn("confirm") == "A" and Hints.btn("turbo") == "RB", "Xbox names: A / RB")
+	Game.input_mode = "kbd"
+	_check(Hints.btn("confirm") == "Space" and Hints.adapt("press SPACE") == "press SPACE", "keyboard names unchanged")
+	Game.pad_style_pref = "auto"
 	print("FAILURES: ", fails)
 	get_tree().quit(fails)

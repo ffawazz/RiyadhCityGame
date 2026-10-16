@@ -141,8 +141,13 @@ func repair() -> void:
 func _physics_process(delta: float) -> void:
 	if is_prop:
 		return
-	var throttle := Input.get_action_strength("accelerate")
-	var brake := Input.get_action_strength("brake")
+	# Analog triggers / sticks on some pads and TVs only report part of their travel (or rest a little
+	# off-centre), so a light press counts as full gas, and a faint brake signal is ignored while
+	# you are on the gas. Keyboard (1.0) is unchanged.
+	var throttle := clampf(Input.get_action_strength("accelerate") * 4.0, 0.0, 1.0)
+	var brake := clampf(Input.get_action_strength("brake") * 4.0, 0.0, 1.0)
+	if throttle > 0.3 and brake < 0.7:
+		brake = 0.0
 	var hand := Input.is_action_pressed("handbrake")
 	throttle_amount = throttle
 	var perf := damage.perf() if damage != null else 1.0
