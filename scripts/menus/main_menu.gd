@@ -36,17 +36,20 @@ func _ready() -> void:
 
 var _pad_label: Label
 var _last_input: String = "-"
+var _last_event: String = "-"
 
 
 func _refresh_pad() -> void:
 	var pads := Input.get_connected_joypads()
 	if pads.is_empty():
-		_pad_label.text = "Gamepad: NOT detected  (pair the controller in the TV's Bluetooth settings)   last input: %s" % _last_input
+		_pad_label.text = "Gamepad: NOT detected by the game   last input: %s   event: %s" % [_last_input, _last_event]
 	else:
-		_pad_label.text = "Gamepad: %s   last input: %s" % [Input.get_joy_name(pads[0]), _last_input]
+		_pad_label.text = "Gamepad: %s (%d)   last input: %s   event: %s" % [Input.get_joy_name(pads[0]), pads.size(), _last_input, _last_event]
 
 
 func _input(event: InputEvent) -> void:
+	if not (event is InputEventMouseMotion):
+		_last_event = event.as_text().left(60)
 	if event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > 0.5):
 		_last_input = "gamepad"
 	elif event is InputEventKey:
