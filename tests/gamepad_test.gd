@@ -86,5 +86,21 @@ func _ready() -> void:
 	Game.input_mode = "kbd"
 	_check(Hints.btn("confirm") == "Space" and Hints.adapt("press SPACE") == "press SPACE", "keyboard names unchanged")
 	Game.pad_style_pref = "auto"
+	# triggers can be switched off (the stick then drives)
+	Game.triggers_pref = "off"
+	Game.apply_trigger_setting()
+	await _axis(JOY_AXIS_TRIGGER_RIGHT, 1.0)
+	_check(not Input.is_action_pressed("accelerate"), "triggers OFF: R2 no longer gives gas")
+	await _axis(JOY_AXIS_TRIGGER_RIGHT, 0.0)
+	await _axis(JOY_AXIS_LEFT_Y, -1.0)
+	_check(Input.is_action_pressed("accelerate"), "triggers OFF: the left stick still gives gas")
+	await _axis(JOY_AXIS_LEFT_Y, 0.0)
+	Game.triggers_pref = "on"
+	Game.apply_trigger_setting()
+	await _axis(JOY_AXIS_TRIGGER_RIGHT, 1.0)
+	_check(Input.is_action_pressed("accelerate"), "triggers ON: R2 gives gas")
+	await _axis(JOY_AXIS_TRIGGER_RIGHT, 0.0)
+	Game.triggers_pref = "auto"
+	Game.apply_trigger_setting()
 	print("FAILURES: ", fails)
 	get_tree().quit(fails)

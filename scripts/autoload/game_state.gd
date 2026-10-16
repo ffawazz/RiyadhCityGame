@@ -209,6 +209,9 @@ var spawn_id: String = "home"        # where the car appears when a driving scen
 ## "kbd", "pad" or "touch": what the player is using right now (drives the on-screen button names).
 var input_mode: String = "kbd"
 var pad_style_pref: String = "auto"     # "auto", "ps" or "xbox" (chosen in the Controller test screen)
+## Use the analog triggers (L2 / R2) for gas and brake? "auto" = yes on PC, no on Android (TV pads often
+## report stuck / partial trigger values). Without them the left stick drives: up = gas, down = brake.
+var triggers_pref: String = "auto"
 var _last_pad_msec: int = 0
 
 
@@ -216,6 +219,7 @@ func _ready() -> void:
 	_register_inputs()
 	_install_arabic_font()
 	load_settings()
+	apply_trigger_setting()
 	if not Input.get_connected_joypads().is_empty():
 		input_mode = "pad"
 	elif OS.has_feature("android") or OS.has_feature("ios"):
@@ -307,10 +311,40 @@ func daily_lines() -> Array[String]:
 const SETTINGS_PATH := "user://riyadh_kids_settings.cfg"
 
 
+func triggers_on() -> bool:
+	if triggers_pref == "on":
+		return true
+	if triggers_pref == "off":
+		return false
+	return not OS.has_feature("android")
+
+
+## Adds or removes the L2 / R2 axes from the gas and brake actions.
+func apply_trigger_setting() -> void:
+	var want := triggers_on()
+	for pair: Array in [["accelerate", JOY_AXIS_TRIGGER_RIGHT], ["brake", JOY_AXIS_TRIGGER_LEFT]]:
+		var action: String = pair[0]
+		var axis: int = pair[1]
+		var found := false
+		for ev: InputEvent in InputMap.action_get_events(action):
+			var jm := ev as InputEventJoypadMotion
+			if jm != null and jm.axis == axis:
+				found = true
+				if not want:
+					InputMap.action_erase_event(action, ev)
+		if want and not found:
+			var add := InputEventJoypadMotion.new()
+			add.axis = axis as JoyAxis
+			add.axis_value = 1.0
+			add.device = -1
+			InputMap.action_add_event(action, add)
+
+
 func save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("music", "custom_music", custom_music)
 	cfg.set_value("input", "pad_style", pad_style_pref)
+	cfg.set_value("input", "triggers", triggers_pref)
 	cfg.save(SETTINGS_PATH)
 
 
@@ -319,6 +353,7 @@ func load_settings() -> void:
 	if cfg.load(SETTINGS_PATH) == OK:
 		custom_music = cfg.get_value("music", "custom_music", {})
 		pad_style_pref = cfg.get_value("input", "pad_style", "auto")
+		triggers_pref = cfg.get_value("input", "triggers", "auto")
 
 
 func has_save() -> bool:

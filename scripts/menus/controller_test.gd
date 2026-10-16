@@ -6,6 +6,7 @@ var _list: Label
 var _log: Label
 var _lines: Array[String] = []
 var _style_btn: Button
+var _trig_btn: Button
 var _counts := {"key": 0, "pad button": 0, "pad axis": 0, "touch": 0, "other": 0}
 
 
@@ -24,6 +25,9 @@ func _ready() -> void:
 	_style_btn = UIKit.button("", _cycle_style, Vector2(520, 56))
 	box.add_child(_style_btn)
 	_refresh_style()
+	_trig_btn = UIKit.button("", _cycle_triggers, Vector2(520, 56))
+	box.add_child(_trig_btn)
+	_refresh_triggers()
 	var close := UIKit.button("Close (or press Esc)", queue_free, Vector2(320, 56))
 	box.add_child(close)
 	close.grab_focus()
@@ -33,6 +37,18 @@ func _cycle_style() -> void:
 	Game.pad_style_pref = {"auto": "ps", "ps": "xbox", "xbox": "auto"}[Game.pad_style_pref]
 	Game.save_settings()
 	_refresh_style()
+
+
+func _cycle_triggers() -> void:
+	Game.triggers_pref = {"auto": "on", "on": "off", "off": "auto"}[Game.triggers_pref]
+	Game.apply_trigger_setting()
+	Game.save_settings()
+	_refresh_triggers()
+
+
+func _refresh_triggers() -> void:
+	var label := {"auto": "Auto  (currently %s)" % ("ON" if Game.triggers_on() else "OFF"), "on": "ON", "off": "OFF"}
+	_trig_btn.text = "L2 / R2 triggers for gas & brake: %s  (press to change)" % label[Game.triggers_pref]
 
 
 func _refresh_style() -> void:

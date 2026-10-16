@@ -47,6 +47,9 @@ static func is_pad() -> bool:
 
 ## The "press this" line shown over the driving / farm HUD.
 static func drive_help() -> String:
+	if is_pad() and not Game.triggers_on():
+		return "Left stick: up = gas, down = brake, left / right = steer   %s handbrake = drift!  %s TURBO  %s enter a place  %s camera  %s menu\nRight stick = look around the car" % [
+				btn("handbrake"), btn("turbo"), btn("interact"), btn("camera"), btn("back")]
 	if is_pad():
 		return "%s gas  %s brake  left stick steer  %s handbrake = drift!  %s TURBO  %s enter a place  %s camera  %s menu\nRight stick = look around the car" % [
 				btn("gas"), btn("brake"), btn("handbrake"), btn("turbo"), btn("interact"), btn("camera"), btn("back")]
