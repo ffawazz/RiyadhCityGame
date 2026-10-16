@@ -44,8 +44,8 @@ jobs:
 
       - name: Debug keystore and Godot editor settings
         run: |
-          keytool -genkeypair -v -keystore "$HOME/debug.keystore" -alias androiddebugkey -keyalg RSA -keysize 2048 \
-            -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
+          # one fixed debug key for every build, so a new APK can update the one already installed
+          cp signing/riyadhkids-debug.keystore "$HOME/debug.keystore"
           mkdir -p "$HOME/.config/godot"
           cat > "$HOME/.config/godot/editor_settings-${GODOT_VERSION}.tres" <<SETTINGS
           [gd_resource type="EditorSettings" format=3]

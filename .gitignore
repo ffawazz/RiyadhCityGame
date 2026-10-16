@@ -5,3 +5,4 @@ game.log
 build/
 *.apk
 *.keystore
+!signing/riyadhkids-debug.keystore
