@@ -21,6 +21,38 @@ func _ready() -> void:
 	build.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	build.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	add_child(build)
+	# controller status (helps on Android TV, where the remote and a gamepad are different devices)
+	_pad_label = UIKit.label("", 18, Color(1, 1, 1, 0.9))
+	_pad_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
+	_pad_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	add_child(_pad_label)
+	_refresh_pad()
+	var timer := Timer.new()
+	timer.wait_time = 0.5
+	timer.autostart = true
+	timer.timeout.connect(_refresh_pad)
+	add_child(timer)
+
+
+var _pad_label: Label
+var _last_input: String = "-"
+
+
+func _refresh_pad() -> void:
+	var pads := Input.get_connected_joypads()
+	if pads.is_empty():
+		_pad_label.text = "Gamepad: NOT detected  (pair the controller in the TV's Bluetooth settings)   last input: %s" % _last_input
+	else:
+		_pad_label.text = "Gamepad: %s   last input: %s" % [Input.get_joy_name(pads[0]), _last_input]
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > 0.5):
+		_last_input = "gamepad"
+	elif event is InputEventKey:
+		_last_input = "remote / keyboard"
+	elif event is InputEventScreenTouch:
+		_last_input = "touch"
 
 
 func _on_play() -> void:
